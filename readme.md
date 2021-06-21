@@ -1,5 +1,5 @@
 # writetofillet
- Write a word a given amount of times to a file, as simple as that. This is a simple python script that will fill a text file with a word of choice. This script is intended for command line usage. This only check for the amount of arguments, does not check against idio* usage.
+ Write a word a given amount of times to a file, as simple as that. This is a simple python script that will fill a text file with a word of choice. This script is intended for command line usage. This only check for the amount of arguments, does not check against bad users usage.
 
 ## Usage
 
