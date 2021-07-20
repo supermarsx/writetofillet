@@ -7,7 +7,7 @@ The arguments for this script are: the word you want to repeat, the number of ti
 
 ```
 writetofillet BIRDISTHEWORD TIMESTOREPEAT FILENAME.TXT
-
+```
 
 This writes "BIRDISTHEWORD" 10000 times to wordtext.txt
 
