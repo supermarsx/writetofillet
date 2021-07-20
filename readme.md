@@ -9,19 +9,21 @@ The arguments for this script are: the word you want to repeat, the number of ti
 writetofillet BIRDISTHEWORD TIMESTOREPEAT FILENAME.TXT
 ```
 
-This writes "BIRDISTHEWORD" 10000 times to wordtext.txt
+### Examples
+
+- This writes "BIRDISTHEWORD" 10000 times to wordtext.txt
 
 ```
 writetofillet BIRDISTHEWORD 10000 wordtext.txt
 ```
 
-This writes "NEVERGONNAGIVEYOUUP" in each line 5000 times to wordtext.txt
+- This writes "NEVERGONNAGIVEYOUUP" in each line 5000 times to wordtext.txt
 
 ```
 writetofillet NEVERGONNAGIVEYOUUP\n 5000 wordtext.txt
 ```
 
-This writes "FIRESTARTER" in each line 2400 times to wordtext.txt
+- This writes "FIRESTARTER" in each line 2400 times to wordtext.txt
 
 ```
 writetofillet "FIRESTARTER\n" 2400 wordtext.txt
