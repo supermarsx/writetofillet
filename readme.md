@@ -1,26 +1,30 @@
 # writetofillet
- Write a word a given amount of times to a file, as simple as that. This is a simple python script that will fill a text file with a word of choice. This script is intended for command line usage. This only check for the amount of arguments, does not check against bad users usage.
+This is a script that writes a word a given amount of times to a file. It will fill a text file with a word of choice. This script is intended for command line usage and won't check for proper arguments besides the number of arguments passed.
 
 ## Usage
 
-The arguments for this script is the word you want to repeat, the number of times to repeat, and the filename to write that word to.
-
-This writes "MYWORD" 10000 times to wordtext.txt
+The arguments for this script are: the word you want to repeat, the number of times to repeat, and the filename to write that word to.
 
 ```
-writetofillet MYWORD 10000 wordtext.txt
-```
+writetofillet BIRDISTHEWORD TIMESTOREPEAT FILENAME.TXT
 
-This writes "MYWORD" in each line 5000 times to wordtext.txt
 
-```
-writetofillet MYWORD\n 5000 wordtext.txt
-```
-
-This writes "YOUR SENTENCE" in each line 2400 times to wordtext.txt
+This writes "BIRDISTHEWORD" 10000 times to wordtext.txt
 
 ```
-writetofillet "YOUR SENTENCE\n" 2400 wordtext.txt
+writetofillet BIRDISTHEWORD 10000 wordtext.txt
+```
+
+This writes "NEVERGONNAGIVEYOUUP" in each line 5000 times to wordtext.txt
+
+```
+writetofillet NEVERGONNAGIVEYOUUP\n 5000 wordtext.txt
+```
+
+This writes "FIRESTARTER" in each line 2400 times to wordtext.txt
+
+```
+writetofillet "FIRESTARTER\n" 2400 wordtext.txt
 ```
 
 ## Build
