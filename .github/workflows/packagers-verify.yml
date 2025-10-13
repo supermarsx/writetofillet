@@ -56,6 +56,9 @@ PY
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
       - name: Install Scoop
         shell: powershell
         run: |
@@ -74,20 +77,22 @@ PY
           # Update manifest to point to local file with correct hash
           $manifestPath = "$pwd\bucket\writetofillet.json"
           $json = Get-Content $manifestPath -Raw | ConvertFrom-Json
-          $exePath = "$pwd\dist\writetofillet-windows-$archSuffix.exe"
+          $exePath = Join-Path $pwd "dist/writetofillet-windows-$archSuffix.exe"
+          $fileUri = [System.Uri]::new($exePath).AbsoluteUri
           $hash = (Get-FileHash -Algorithm SHA256 $exePath).Hash.ToLower()
           if ($archSuffix -eq "x64") {
-            $json.architecture."64bit".url = "file://$exePath"
+            $json.architecture."64bit".url = $fileUri
             $json.architecture."64bit".hash = $hash
-            $json.architecture."64bit".bin = "writetofillet-windows-$archSuffix.exe"
+            $json.architecture."64bit".bin = @("writetofillet-windows-$archSuffix.exe", "writetofillet")
           } else {
-            $json.architecture."arm64".url = "file://$exePath"
+            $json.architecture."arm64".url = $fileUri
             $json.architecture."arm64".hash = $hash
-            $json.architecture."arm64".bin = "writetofillet-windows-$archSuffix.exe"
+            $json.architecture."arm64".bin = @("writetofillet-windows-$archSuffix.exe", "writetofillet")
           }
           $json | ConvertTo-Json -Depth 10 | Set-Content -Encoding UTF8 $manifestPath
       - name: Scoop install from manifest
         shell: powershell
         run: |
-          scoop install $pwd\bucket\writetofillet.json
+          scoop cache rm writetofillet | Out-Null
+          scoop install "$pwd\bucket\writetofillet.json" --no-cache
           writetofillet --version
