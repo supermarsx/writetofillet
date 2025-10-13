@@ -44,3 +44,37 @@ jobs:
         with:
           name: writetofillet-${{ runner.os }}
           path: dist/writetofillet-*
+
+  publish:
+    name: Publish CI Release
+    needs: build-binaries
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Determine CI tag
+        id: tag
+        run: |
+          YY=$(date +'%y')
+          # Use run number to avoid collisions
+          TAG="${YY}.ci.${GITHUB_RUN_NUMBER}"
+          echo "TAG=$TAG" >> $GITHUB_ENV
+          echo "Computed tag: $TAG"
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: writetofillet-*
+          merge-multiple: true
+          path: ./artifacts
+      - name: Publish prerelease with artifacts
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.TAG }}
+          name: CI Build ${{ env.TAG }}
+          prerelease: true
+          make_latest: false
+          files: |
+            artifacts/**
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
