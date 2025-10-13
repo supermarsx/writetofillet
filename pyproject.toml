@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "writetofillet"
+version = "0.1.0"
+description = "writetofillet: multithreaded file pumper CLI"
+requires-python = ">=3.10"
+authors = [{name = "Maintainers"}]
+readme = "readme.md"
+license = { file = "license.md" }
+
+[project.scripts]
+writetofillet = "writetofillet.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.black]
+line-length = 100
+target-version = ["py310"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+select = ["E", "F", "I", "UP"]
+ignore = []

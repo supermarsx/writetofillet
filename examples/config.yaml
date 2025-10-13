@@ -1,0 +1,42 @@
+# Example writetofillet config (YAML)
+
+write_mode: normal-write
+pump_mode: word
+mode: random
+
+word: "Abc123"
+encoding: utf-8
+newline_mode: char
+newline_style: crlf
+
+dict_order: sequential
+# dict_path: ./examples/wordlist.txt
+# dict_list: ./examples/wordlists.txt
+
+times_range: "2^10,2^11"
+
+workers: 2
+concurrency: generate
+gen_workers: 2
+chunk: 64KiB
+rate: 5MiB
+seed: 99
+
+buffer_mode: stream
+ram_max: 128MiB
+max_times: 1000000
+disable_disk_guard: false
+disk_guard_margin: 50MiB
+
+fsync_enable: true
+fsync_interval: 8MiB
+sparse: false
+
+cpu_limit: 0.0
+ram_limit: 0
+
+progress: true
+progress_interval: 0.25
+
+# filelist: ./examples/filelist.txt
+

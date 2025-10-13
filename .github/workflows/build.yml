@@ -1,0 +1,26 @@
+name: Build
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+jobs:
+  build-binaries:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-13, macos-14]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install -e . pyinstaller
+      - name: Build
+        run: |
+          pyinstaller --onefile -n writetofillet src/writetofillet/cli.py
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: writetofillet-${{ runner.os }}
+          path: dist/*

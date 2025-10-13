@@ -1,0 +1,32 @@
+{
+  "version": "latest",
+  "description": "Multithreaded file pumper CLI",
+  "homepage": "https://github.com/supermarsx/writetofillet",
+  "license": "MIT",
+  "architecture": {
+    "64bit": {
+      "url": "https://github.com/supermarsx/writetofillet/releases/latest/download/writetofillet-windows-x64.exe",
+      "hash": "skip",
+      "bin": "writetofillet-windows-x64.exe"
+    },
+    "arm64": {
+      "url": "https://github.com/supermarsx/writetofillet/releases/latest/download/writetofillet-windows-arm64.exe",
+      "hash": "skip",
+      "bin": "writetofillet-windows-arm64.exe"
+    }
+  },
+  "checkver": {
+    "github": "https://github.com/supermarsx/writetofillet"
+  },
+  "autoupdate": {
+    "architecture": {
+      "64bit": {
+        "url": "https://github.com/supermarsx/writetofillet/releases/latest/download/writetofillet-windows-x64.exe"
+      },
+      "arm64": {
+        "url": "https://github.com/supermarsx/writetofillet/releases/latest/download/writetofillet-windows-arm64.exe"
+      }
+    }
+  }
+}
+

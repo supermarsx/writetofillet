@@ -1,0 +1,21 @@
+{
+  "write_mode": "binary-write",
+  "pump_mode": "randbin",
+  "workers": 4,
+  "concurrency": "write",
+  "chunk": "256KiB",
+  "rate": "0",
+  "buffer_mode": "stream",
+  "ram_max": "512MiB",
+  "disable_disk_guard": false,
+  "disk_guard_margin": "200MiB",
+  "fsync_enable": false,
+  "fsync_interval": "8MiB",
+  "sparse": true,
+  "cpu_limit": 0.0,
+  "ram_limit": "0",
+  "progress": true,
+  "progress_interval": 0.5,
+  "size": "1GiB"
+}
+

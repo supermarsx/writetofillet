@@ -1,40 +1,25 @@
+"""
+\file writetofillet.py
+\brief Thin facade that forwards to the package CLI.
+"""
+
 import sys
 
-arguments = sys.argv[1:]
-argumentLength = len(arguments)
 
-messageErrorArgs = "ERROR: Wrong number of arguments"
-messageUsage = "Usage: writetofillet word timestorepeat filename"
+def main(argv=None):
+    """Facade entrypoint.
 
-print(messageUsage)
+    \param argv Optional list of arguments (defaults to sys.argv[1:]).
+    \return Process exit code from the real CLI.
+    """
+    try:
+        from writetofillet.cli import main as runner
+    except Exception as e:
+        print(f"Failed to import writetofillet CLI: {e}", file=sys.stderr)
+        return 1
+    args = list(sys.argv[1:] if argv is None else argv)
+    return runner(args)
 
-if argumentLength != 3:
-    sys.exit(messageErrorArgs)
 
-word = arguments[0]
-times = int(arguments[1])
-filename = arguments[2]
-
-hasNewLine = "\\n" in word
-if hasNewLine:
-    word = word.replace("\\n", "")
-
-print(hasNewLine)
-
-messagePlay = "Writetofillet, writing {word} {times} time(s) at {filename}".format(word=word, times=times, filename=filename)
-print(messagePlay)
-
-textFile = open(filename, "w")
-
-print("Successfully opened file, {filename}".format(filename=filename))
-for x in range(0, 5):
-    print("{percent}% completed".format(percent=x*20))
-    for y in range(0*x, times//5*(x+1)):
-        f = textFile.write(word)
-        if hasNewLine:
-            textFile.write("\n")
-
-print("100% completed")
-
-textFile.close()
-print("Closed file successfully, finished writing")
+if __name__ == "__main__":
+    raise SystemExit(main())

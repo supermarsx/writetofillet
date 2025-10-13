@@ -1,0 +1,55 @@
+# Example writetofillet config (TOML)
+
+# High-level behavior
+write_mode = "normal-append"       # normal-append|normal-write|binary-append|binary-write
+pump_mode  = "word"                # word|bin1|bin0|randbin|randutf8|randhex|random
+mode       = "fixed"               # fixed|random (applies to word mode)
+
+# Text generation
+word          = "HELLO"
+encoding      = "utf-8"            # utf-8|utf-16|latin-1|... or "auto"
+newline_mode  = "word"             # none|word|char
+newline_style = "lf"               # lf|cr|crlf
+
+# Dictionary mode
+# dict_path = "./examples/wordlist.txt"
+# dict_list = "./examples/wordlists.txt"
+dict_order = "random"              # sequential|reverse|random|presorted
+dict_ram   = true                   # required for non-sequential orders
+
+# Workload
+times      = 1000                   # or use times_range instead
+# times_range = "1e3,2e3"          # supports 2^20, 1e6, underscores
+# size       = "10MiB"             # alternative to times-based pumping
+
+# Performance
+workers     = 1
+concurrency = "write"              # write|generate
+gen_workers = 1
+chunk       = "64KiB"
+rate        = "0"                  # bytes/sec; 0 or unset disables
+seed        = 42
+
+# Buffering & safety
+buffer_mode        = "ram"          # ram|stream
+ram_max            = "256MiB"
+max_times          = 10000000
+disable_disk_guard = false
+disk_guard_margin  = "100MiB"
+
+# Durability and sparsity
+fsync_enable   = false              # enable periodic fsync
+fsync_interval = "8MiB"            # used only when fsync_enable=true
+sparse         = false              # try creating sparse files for zero data
+
+# Throttling & limits
+cpu_limit = 0.0                     # 0 disables; percent of total CPU across cores
+ram_limit = "0"                    # 0 disables; abort if RSS exceeds this
+
+# UX
+progress           = true
+progress_interval  = 1.0
+
+# Targets (used together with positional path)
+# filelist = "./examples/filelist.txt"
+

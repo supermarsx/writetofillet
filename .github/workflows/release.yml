@@ -1,0 +1,138 @@
+name: Release
+on:
+  push:
+    branches: [ main, master ]
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install black
+      - run: black --check .
+
+  lint:
+    runs-on: ubuntu-latest
+    needs: format
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install ruff
+      - run: ruff check .
+
+  test:
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -e . pytest
+      - run: pytest -q
+
+  build-x64:
+    name: Build x64
+    needs: test
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-13]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -e . pyinstaller
+      - run: pyinstaller --onefile -n writetofillet src/writetofillet/cli.py
+      - name: Rename artifact with OS/arch suffix
+        shell: bash
+        run: |
+          set -euo pipefail
+          OS_NAME="${{ runner.os }}"
+          case "$OS_NAME" in
+            Linux) os=linux; ext="" ;;
+            macOS) os=macos; ext="" ;;
+            Windows) os=windows; ext=".exe" ;;
+            *) echo "Unknown OS $OS_NAME"; exit 1 ;;
+          esac
+          src="dist/writetofillet$ext"
+          dst="dist/writetofillet-${os}-x64$ext"
+          mv "$src" "$dst"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: writetofillet-${{ runner.os }}-x64
+          path: dist/writetofillet-*
+
+  build-arm64:
+    name: Build arm64
+    needs: test
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-24.04-arm64
+          - os: macos-14
+          # Placeholder for Windows 11 arm64; requires appropriate runner support
+          # - os: windows-11
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -e . pyinstaller
+      - run: pyinstaller --onefile -n writetofillet src/writetofillet/cli.py
+      - name: Rename artifact with OS/arch suffix
+        shell: bash
+        run: |
+          set -euo pipefail
+          OS_NAME="${{ runner.os }}"
+          case "$OS_NAME" in
+            Linux) os=linux; ext="" ;;
+            macOS) os=macos; ext="" ;;
+            Windows) os=windows; ext=".exe" ;;
+            *) echo "Unknown OS $OS_NAME"; exit 1 ;;
+          esac
+          src="dist/writetofillet$ext"
+          dst="dist/writetofillet-${os}-arm64$ext"
+          mv "$src" "$dst"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: writetofillet-${{ runner.os }}-arm64
+          path: dist/writetofillet-*
+
+  release:
+    needs: [build-x64, build-arm64]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Determine next rolling tag (yy.N)
+        id: next_tag
+        run: |
+          YY=$(date +'%y')
+          git fetch --tags --force || true
+          LAST=$(git tag -l "${YY}.*" | sed -n "s/^${YY}\.\([0-9][0-9]*\)$/\1/p" | sort -n | tail -n 1)
+          if [ -z "$LAST" ]; then N=1; else N=$((LAST+1)); fi
+          TAG="${YY}.${N}"
+          echo "TAG=$TAG" >> $GITHUB_ENV
+          echo "Computed tag: $TAG"
+      - uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+      - name: Create rolling release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.TAG }}
+          name: Release ${{ env.TAG }}
+          prerelease: false
+          make_latest: true
+          files: |
+            artifacts/**
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
