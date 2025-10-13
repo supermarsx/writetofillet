@@ -5,7 +5,7 @@
 [![Test](https://github.com/supermarsx/writetofillet/actions/workflows/test.yml/badge.svg)](https://github.com/supermarsx/writetofillet/actions/workflows/test.yml)
 [![Build](https://github.com/supermarsx/writetofillet/actions/workflows/build.yml/badge.svg)](https://github.com/supermarsx/writetofillet/actions/workflows/build.yml)
 [![Release](https://github.com/supermarsx/writetofillet/actions/workflows/release.yml/badge.svg)](https://github.com/supermarsx/writetofillet/actions/workflows/release.yml)
-[![Coverage](badges/coverage.svg)](badges/coverage.svg)
+[![Coverage](https://raw.githubusercontent.com/supermarsx/writetofillet/refs/heads/main/badges/coverage.svg)](https://raw.githubusercontent.com/supermarsx/writetofillet/refs/heads/main/badges/coverage.svg)
 [![Stars](https://img.shields.io/github/stars/supermarsx/writetofillet.svg)](https://github.com/supermarsx/writetofillet/stargazers)
 [![Forks](https://img.shields.io/github/forks/supermarsx/writetofillet.svg)](https://github.com/supermarsx/writetofillet/fork)
 [![Watchers](https://img.shields.io/github/watchers/supermarsx/writetofillet.svg)](https://github.com/supermarsx/writetofillet/watchers)
