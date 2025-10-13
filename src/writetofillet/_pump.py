@@ -314,9 +314,7 @@ def buffer_and_dump(
     def add_chunk(chunk: bytes):
         nonlocal written
         if len(buf) + len(chunk) > ram_max:
-            raise SystemExit(
-                "RAM buffer exceeds --ram-max; use streaming or increase limit"
-            )
+            raise SystemExit("RAM buffer exceeds --ram-max; use streaming or increase limit")
         buf.extend(chunk)
         written += len(chunk)
         if rate_bps:
@@ -377,8 +375,7 @@ def buffer_and_dump(
                 rem = max(target - written, 0)
                 eta = rem / rate if rate > 0 else float("inf")
                 msg = (
-                    f"\rProgress (RAM): {fmt_bytes(written)} ({pct:.1f}%) @ "
-                    f"ETA {fmt_eta(eta)}"
+                    f"\rProgress (RAM): {fmt_bytes(written)} ({pct:.1f}%) @ " f"ETA {fmt_eta(eta)}"
                 )
                 print(msg, end="", file=sys.stderr)
                 last_report = time.monotonic()
@@ -693,8 +690,3 @@ def pipeline_generate(
         t.join()
     q.put(None)
     w.join()
-
-
-
-
-

@@ -269,6 +269,3 @@ def make_token_iter(args) -> Iterable[bytes]:
                 yield gen_random_bytes(pump_mode, args.chunk)
 
         return bytes_stream()
-
-
-
