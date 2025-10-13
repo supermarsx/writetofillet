@@ -68,9 +68,10 @@ PY
       - name: Build local Windows binary
         shell: powershell
         run: |
-          python -V
-          pip install -e . pyinstaller
-          pyinstaller --onefile -n writetofillet src/writetofillet/cli.py
+          $py = if ($env:pythonLocation) { Join-Path $env:pythonLocation 'python.exe' } else { 'python' }
+          & $py -V
+          & $py -m pip install -e . pyinstaller
+          & $py -m PyInstaller --onefile -n writetofillet src/writetofillet/cli.py
           $archSuffix = "x64"
           if ($env:PROCESSOR_ARCHITECTURE -eq "ARM64") { $archSuffix = "arm64" }
           Move-Item -Force "dist/writetofillet.exe" "dist/writetofillet-windows-$archSuffix.exe"
