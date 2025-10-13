@@ -9,6 +9,19 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Build local binary
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -V
+          pip install -e . pyinstaller
+          pyinstaller --onefile -n writetofillet src/writetofillet/cli.py
+          arch_name="x64"
+          if [ "$(uname -m)" = "arm64" ]; then arch_name="arm64"; fi
+          mv dist/writetofillet "dist/writetofillet-macos-${arch_name}"
       - name: Brew install from local tap
         shell: bash
         run: |
@@ -18,6 +31,10 @@ jobs:
           tapdir="$(brew --repository)/Library/Taps/local/homebrew-writetofillet"
           mkdir -p "$tapdir/Formula"
           cp Formula/writetofillet.rb "$tapdir/Formula/writetofillet.rb"
+          # Point the formula URL for this platform to the locally built artifact
+          arch_name="x64"
+          if [ "$(uname -m)" = "arm64" ]; then arch_name="arm64"; fi
+          sed -i '' -E "s|url \"https://github.com/[^\"]*/releases/latest/download/writetofillet-macos-(arm64|x64)\"|url \"file://$PWD/dist/writetofillet-macos-${arch_name}\"|" "$tapdir/Formula/writetofillet.rb"
           # Install from the local tap by name, not path
           brew install local/writetofillet/writetofillet
           writetofillet --version
