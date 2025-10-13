@@ -20,7 +20,7 @@ jobs:
       - run: python scripts/gen_coverage_badge.py coverage.xml badges/coverage.svg
       - name: Commit badge
         run: |
-          if git status --porcelain | grep badges/coverage.svg; then
+          if git status --porcelain | grep -q -- 'badges/coverage.svg'; then
             git config user.name github-actions
             git config user.email github-actions@github.com
             git add badges/coverage.svg
@@ -28,3 +28,4 @@ jobs:
             git push
           else
             echo "No badge changes."
+          fi
