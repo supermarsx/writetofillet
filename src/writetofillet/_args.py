@@ -38,7 +38,17 @@ def build_argparser() -> argparse.ArgumentParser:
     )
 
     io = p.add_argument_group("I/O")
-    io.add_argument("path", help="Target file path")
+    io.add_argument("path", nargs="?", default="-", help="Target file path or '-' for stdout")
+    io.add_argument(
+        "--encoding",
+        default="utf-8",
+        help="Text encoding for word/dictionary modes, or 'auto' to detect",
+    )
+    io.add_argument(
+        "--newline",
+        action="store_true",
+        help="(Legacy) add newline after each token; maps to --newline-mode word",
+    )
 
     work = p.add_argument_group("Workload")
     work.add_argument("--times", type=int, help="Repeat token this many times")
@@ -56,7 +66,10 @@ def build_argparser() -> argparse.ArgumentParser:
     source.add_argument(
         "--dict-list",
         dest="dict_list",
-        help="Path to a file containing list of dictionary files (one per line; relative to this list file or absolute)",
+        help=(
+            "Path to a file listing dictionary files (one per line); "
+            "relative paths are resolved against the list file"
+        ),
     )
     source.add_argument(
         "--dict-order", choices=["sequential", "reverse", "random", "presorted"], default="random"
@@ -159,7 +172,10 @@ def build_argparser() -> argparse.ArgumentParser:
     buffer.add_argument(
         "--sparse",
         action="store_true",
-        help="Attempt to create sparse files (skip zero chunks, mark sparse on supported filesystems)",
+        help=(
+            "Attempt to create sparse files (skip zero chunks, mark sparse on supported "
+            "filesystems)"
+        ),
     )
 
     limits = p.add_argument_group("Limits & Safety")

@@ -1,10 +1,3 @@
-import logging
-import random
-import sys
-import threading
-from collections.abc import Iterable
-from pathlib import Path
-
 """
 \file cli.py
 \brief CLI entrypoint orchestrating parsing, threading, and pumping.
@@ -13,6 +6,13 @@ This module wires together argument parsing, data generation, buffering
 strategies, and writing. It prints a startup banner, configures logging,
 supports update checks, and then runs the main execution in its own thread.
 """
+
+import logging
+import random
+import sys
+import threading
+from collections.abc import Iterable
+from pathlib import Path
 
 from ._args import build_argparser, resolve_times
 from ._bench import run_benchmark
@@ -108,10 +108,12 @@ def main(argv: Iterable[str] | None = None) -> int:
                 f"{r.chunk},{r.workers},{r.concurrency},{r.throughput_bps/(1024*1024):.2f},{r.cpu_percent:.1f},{rss_mib}"
             )
         print("\nRecommendation:")
-        print(
-            f"--chunk {best.chunk} --concurrency {best.concurrency} "
-            f"{'--workers ' + str(best.workers) if best.concurrency=='write' else '--gen-workers ' + str(best.workers)}"
+        workers_flag = (
+            f"--workers {best.workers}"
+            if best.concurrency == "write"
+            else f"--gen-workers {best.workers}"
         )
+        print(f"--chunk {best.chunk} --concurrency {best.concurrency} {workers_flag}")
         return 0
 
     if args.seed is not None:
@@ -136,14 +138,21 @@ def main(argv: Iterable[str] | None = None) -> int:
     size_limit = args.max_bytes or args.size
 
     # Expand targets: positional path (file or directory) + optional filelist
-    def expand_path(p: Path):
+    def expand_path(p: Path) -> list[Path]:
+        if p == Path("-"):
+            return [p]
         if p.is_dir():
+            if getattr(args, "recursive", False):
+                files: list[Path] = []
+                for child in p.rglob("*"):
+                    if child.is_file():
+                        files.append(child)
+                return sorted(files)
             return sorted([c for c in p.iterdir() if c.is_file()])
         return [p]
 
-    targets = []
+    targets: list[Path] = []
     base_path = Path(args.path)
-    targets.extend(expand_path(base_path))
     if args.filelist:
         list_path = Path(args.filelist)
         base_dir = list_path.parent
@@ -156,6 +165,8 @@ def main(argv: Iterable[str] | None = None) -> int:
                 if not p.is_absolute():
                     p = (base_dir / p).resolve()
                 targets.extend(expand_path(p))
+    else:
+        targets.extend(expand_path(base_path))
 
     if not targets:
         print("No targets resolved to pump.", file=sys.stderr)
@@ -184,10 +195,11 @@ def main(argv: Iterable[str] | None = None) -> int:
             expected = n_times * int(args.chunk)
 
     if use_ram and expected is not None and expected > args.ram_max:
-        print(
-            f"[info] Falling back to streaming: expected {fmt_bytes(expected)} exceeds --ram-max {fmt_bytes(args.ram_max)}",
-            file=sys.stderr,
+        info_msg = (
+            f"[info] Falling back to streaming: expected {fmt_bytes(expected)} "
+            f"exceeds --ram-max {fmt_bytes(args.ram_max)}"
         )
+        print(info_msg, file=sys.stderr)
         use_ram = False
     if use_ram and args.workers > 1:
         print(
@@ -214,11 +226,12 @@ def main(argv: Iterable[str] | None = None) -> int:
                 free = shutil.disk_usage(any_path).free
                 required = g["need"] + int(getattr(args, "disk_guard_margin", 0) or 0)
                 if required > free:
-                    print(
-                        f"[error] Global space check failed for device {dev} ({any_path}): need {fmt_bytes(required)} (including margin) to process {len(targets)} target(s), have {fmt_bytes(free)}. "
-                        f"Use --disable-disk-guard or lower --disk-guard-margin to bypass.",
-                        file=sys.stderr,
+                    err = (
+                        f"[error] Global space check failed for device {dev} ({any_path}): "
+                        f"need {fmt_bytes(required)} (incl. margin) to process targets, "
+                        f"use --disable-disk-guard or lower --disk-guard-margin to bypass."
                     )
+                    print(err, file=sys.stderr)
                     return 3
         except Exception:
             # If we can't compute, continue and rely on per-target checks
@@ -246,11 +259,11 @@ def main(argv: Iterable[str] | None = None) -> int:
                     free = None
                 required = expected + int(getattr(args, "disk_guard_margin", 0) or 0)
                 if free is not None and required > free:
-                    print(
-                        f"[error] Not enough free space at {tgt_parent}: need {fmt_bytes(required)} (including margin), have {fmt_bytes(free)}. "
-                        f"Use --disable-disk-guard or lower --disk-guard-margin to bypass.",
-                        file=sys.stderr,
+                    err = (
+                        f"[error] Not enough free space at {tgt_parent}: need space, "
+                        f"use --disable-disk-guard or lower --disk-guard-margin to bypass."
                     )
+                    print(err, file=sys.stderr)
                     return 3
             logger.info(
                 "target=%s start: mode=%s, append=%s, size=%s, times=%s",
@@ -362,3 +375,8 @@ def main(argv: Iterable[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+
+
+
+

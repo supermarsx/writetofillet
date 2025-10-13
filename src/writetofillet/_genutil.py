@@ -139,8 +139,7 @@ def make_token_iter(args) -> Iterable[bytes]:
 
                         if not transitions:
                             while True:
-                                for w in seq:
-                                    yield w
+                                yield from seq
                         # start with random prefix
                         prefix = _r.choice(list(transitions.keys()))
                         while True:
@@ -158,8 +157,7 @@ def make_token_iter(args) -> Iterable[bytes]:
 
                     def ram_seq():
                         while True:
-                            for w in seq:
-                                yield w
+                            yield from seq
 
                     token_source = ram_seq()
                 elif args.dict_order == "presorted":
@@ -167,8 +165,7 @@ def make_token_iter(args) -> Iterable[bytes]:
 
                     def ram_sorted():
                         while True:
-                            for w in seq:
-                                yield w
+                            yield from seq
 
                     token_source = ram_sorted()
                 elif args.dict_order == "random":
@@ -185,27 +182,55 @@ def make_token_iter(args) -> Iterable[bytes]:
 
                     def ram_seq2():
                         while True:
-                            for w in words:
-                                yield w
+                            yield from words
 
                     token_source = ram_seq2()
             else:
-                # Streaming over multiple dict files supports sequential order only
-                if args.dict_order != "sequential":
-                    raise SystemExit(
-                        "--dict-order requires --dict-ram for non-sequential orders across multiple dictionaries"
-                    )
+                # Without RAM: for a single dictionary, load once for non-sequential orders.
+                if len(dict_paths) == 1 and args.dict_order in {"reverse", "presorted", "random"}:
+                    p = dict_paths[0]
+                    with open(p, encoding=enc, errors="replace") as f:
+                        words = [w.strip() for w in f if w.strip()]
+                    if args.dict_order == "reverse":
+                        seq = list(reversed(words))
 
-                def stream_multi_seq():
-                    while True:
-                        for p in dict_paths:
-                            with open(p, encoding=enc, errors="replace") as f:
-                                for line in f:
-                                    line = line.strip()
-                                    if line:
-                                        yield line
+                        def single_rev():
+                            while True:
+                                yield from seq
 
-                token_source = stream_multi_seq()
+                        token_source = single_rev()
+                    elif args.dict_order == "presorted":
+                        seq = sorted(words)
+
+                        def single_sorted():
+                            while True:
+                                yield from seq
+
+                        token_source = single_sorted()
+                    else:  # random
+
+                        def single_random():
+                            while True:
+                                yield random.choice(words)
+
+                        token_source = single_random()
+                else:
+                    # Streaming over multiple dict files supports sequential order only
+                    if args.dict_order != "sequential":
+                        raise SystemExit(
+                            "--dict-order requires --dict-ram for non-sequential orders (multi)"
+                        )
+
+                    def stream_multi_seq():
+                        while True:
+                            for p in dict_paths:
+                                with open(p, encoding=enc, errors="replace") as f:
+                                    for line in f:
+                                        line = line.strip()
+                                        if line:
+                                            yield line
+
+                    token_source = stream_multi_seq()
         else:
             if args.word is None:
                 raise SystemExit("--word is required for pump-mode=word without --dict")
@@ -229,8 +254,8 @@ def make_token_iter(args) -> Iterable[bytes]:
         def bytes_stream():
             for t in token_source:
                 if scope == "char":
-                    for ch in t:
-                        yield ch.encode(enc, errors="replace") + nl_bytes
+                    part = b"".join(ch.encode(enc, errors="replace") + nl_bytes for ch in t)
+                    yield part
                 elif scope == "word":
                     yield t.encode(enc, errors="replace") + nl_bytes
                 else:
@@ -244,3 +269,6 @@ def make_token_iter(args) -> Iterable[bytes]:
                 yield gen_random_bytes(pump_mode, args.chunk)
 
         return bytes_stream()
+
+
+

@@ -39,6 +39,8 @@ def test_dict_random_with_ram_and_seed_outputs_valid_tokens(tmp_path: Path):
             "--dict-order",
             "random",
             "--dict-ram",
+            "--newline-mode",
+            "word",
             "--times",
             "5",
             "--seed",

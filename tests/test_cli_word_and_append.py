@@ -15,7 +15,7 @@ def test_word_times_overwrite(tmp_path: Path):
     assert data == b"X" * 5
 
     # Overwrite
-    run(["--word", "Y", "--times", "3", str(out)])
+    run(["--write-mode", "normal-write", "--word", "Y", "--times", "3", str(out)])
     assert out.read_bytes() == b"Y" * 3
 
 

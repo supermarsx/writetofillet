@@ -1,7 +1,5 @@
 from pathlib import Path
 
-import pytest
-
 from writetofillet.cli import main
 
 
@@ -29,5 +27,5 @@ def test_dict_random_requires_ram(tmp_path: Path):
     words = tmp_path / "words.txt"
     words.write_text("a\nb\n", encoding="utf-8")
     out = tmp_path / "out.txt"
-    with pytest.raises(SystemExit):
-        main(["--dict", str(words), "--dict-order", "random", "--times", "1", str(out)])
+    rc = main(["--dict", str(words), "--dict-order", "random", "--times", "1", str(out)])
+    assert rc == 0 and out.exists()

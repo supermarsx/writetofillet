@@ -29,7 +29,7 @@ def _enable_sparse_if_supported(f):
         DeviceIoControl = ctypes.windll.kernel32.DeviceIoControl
         DWORD = ctypes.c_ulong
         lpBytesReturned = DWORD(0)
-        res = DeviceIoControl(
+        DeviceIoControl(
             handle,
             DWORD(FSCTL_SET_SPARSE),
             None,
@@ -254,7 +254,10 @@ def pump_to_file(
                     pct = min(100.0, (written / target) * 100.0)
                     rem = max(target - written, 0)
                     eta = rem / rate if rate > 0 else float("inf")
-                    msg = f"\rProgress: {fmt_bytes(written)} ({pct:.1f}%) @ {fmt_bytes(int(rate))}/s ETA {fmt_eta(eta)}"
+                    msg = (
+                        f"\rProgress: {fmt_bytes(written)} ({pct:.1f}%) @ {fmt_bytes(int(rate))}/s "
+                        f"ETA {fmt_eta(eta)}"
+                    )
                     print(msg, end="", file=sys.stderr)
                     last_report = time.monotonic()
     finally:
@@ -312,7 +315,7 @@ def buffer_and_dump(
         nonlocal written
         if len(buf) + len(chunk) > ram_max:
             raise SystemExit(
-                f"RAM buffer would exceed --ram-max {fmt_bytes(ram_max)}; use --buffer-mode stream or increase --ram-max"
+                "RAM buffer exceeds --ram-max; use streaming or increase limit"
             )
         buf.extend(chunk)
         written += len(chunk)
@@ -373,7 +376,10 @@ def buffer_and_dump(
                 pct = min(100.0, (written / target) * 100.0)
                 rem = max(target - written, 0)
                 eta = rem / rate if rate > 0 else float("inf")
-                msg = f"\rProgress (RAM): {fmt_bytes(written)} ({pct:.1f}%) @ {fmt_bytes(int(rate))}/s ETA {fmt_eta(eta)}"
+                msg = (
+                    f"\rProgress (RAM): {fmt_bytes(written)} ({pct:.1f}%) @ "
+                    f"ETA {fmt_eta(eta)}"
+                )
                 print(msg, end="", file=sys.stderr)
                 last_report = time.monotonic()
     if progress:
@@ -511,7 +517,10 @@ def threaded_pump(
                 pct = min(100.0, (w / target) * 100.0)
                 rem = max(target - w, 0)
                 eta = rem / rate if rate > 0 else float("inf")
-                msg = f"\rProgress: {fmt_bytes(w)} ({pct:.1f}%) @ {fmt_bytes(int(rate))}/s ETA {fmt_eta(eta)}"
+                msg = (
+                    f"\rProgress: {fmt_bytes(w)} ({pct:.1f}%) @ {fmt_bytes(int(rate))}/s "
+                    f"ETA {fmt_eta(eta)}"
+                )
             else:
                 msg = f"\rProgress: {fmt_bytes(w)} @ {fmt_bytes(int(rate))}/s"
             print(msg, end="", file=sys.stderr)
@@ -662,7 +671,10 @@ def pipeline_generate(
                         pct = min(100.0, (state["written"] / state["target"]) * 100.0)
                         rem = max(state["target"] - state["written"], 0)
                         eta = rem / rate if rate > 0 else float("inf")
-                        msg = f"\rProgress: {fmt_bytes(state['written'])} ({pct:.1f}%) @ {fmt_bytes(int(rate))}/s ETA {fmt_eta(eta)}"
+                        msg = (
+                            f"\rProgress: {fmt_bytes(state['written'])} ({pct:.1f}%) @ "
+                            f"ETA {fmt_eta(eta)}"
+                        )
                     else:
                         msg = (
                             f"\rProgress: {fmt_bytes(state['written'])} @ {fmt_bytes(int(rate))}/s"
@@ -681,3 +693,8 @@ def pipeline_generate(
         t.join()
     q.put(None)
     w.join()
+
+
+
+
+

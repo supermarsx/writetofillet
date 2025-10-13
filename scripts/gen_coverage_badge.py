@@ -74,7 +74,7 @@ def make_svg(pct: int) -> str:
     <rect x=\"{label_w}\" width=\"{value_w}\" height=\"20\" fill=\"{color}\"/>
     <rect width=\"{total_w}\" height=\"20\" fill=\"url(#b)\"/>
   </g>
-  <g fill=\"#fff\" text-anchor=\"middle\" font-family=\"Verdana,DejaVu Sans,sans-serif\" font-size=\"11\">
+  <g fill=\"#fff\" text-anchor=\"middle\" font-family=\"Verdana\" font-size=\"11\">
     <text x=\"{label_w/2}\" y=\"15\">{label}</text>
     <text x=\"{label_w + value_w/2}\" y=\"15\">{value}</text>
   </g>
