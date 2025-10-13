@@ -74,22 +74,30 @@ scoop install https://raw.githubusercontent.com/supermarsx/writetofillet/refs/he
 ```
 
 ## Quick Examples
-
 ```
-# Repeat WORD 10,000 times (newline after each)
-writetofillet --word BIRDISTHEWORD --times 10000 --newline out.txt
+# 1) Fast sparse binary preallocation (10GiB image)
+writetofillet --write-mode binary-write --pump-mode bin0 --size 10GiB \
+  --sparse --fallocate 10GiB big.img
 
-# Pump until 512MiB using random binary
-writetofillet --pump-mode randbin --size 512MiB out.bin
+# 2) Durable text append, one line per token, fsync enabled
+writetofillet --write-mode normal-append --word EVENT --times 100000 \
+  --newline-mode word --fsync-enable --fsync-interval 8MiB events.log
 
-# Append from dictionary in sequential order
-writetofillet --dict wordlist.txt --dict-order sequential --times 5000 --newline out.txt
+# 3) Dictionary-driven random with weights + Markov (N=3)
+writetofillet --dict-list examples/wordlists.txt --dict-ram \
+  --dict-order random --markov --ngram 3 --times 10000 --newline-mode word corpus.txt
 
-# Random times between 1e3 and 2e3, random hex, 4 workers
-writetofillet --pump-mode randhex --times-range 1000,2000 --workers 4 out.hex
+# 4) Pump every file under a directory (recursive), 100MiB each
+writetofillet --write-mode binary-append --pump-mode randbin --size 100MiB \
+  --recursive ./data/
 
-# Show progress and throttle to ~5MiB/s
-writetofillet --pump-mode randutf8 --size 25MiB --progress --rate 5MiB out.txt
+# 5) Large binary with hashing + verification (1GiB)
+writetofillet --write-mode binary-write --pump-mode randbin --size 1GiB \
+  --hash sha256 --verify out.bin
+
+# 6) Throttled printable UTF-8 with CPU limit and progress (200MiB)
+writetofillet --pump-mode randutf8 --size 200MiB \
+  --rate 5MiB --cpu-limit 150 --progress out.txt
 ```
 
 ## CLI Reference
