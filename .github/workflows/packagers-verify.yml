@@ -31,10 +31,24 @@ jobs:
           tapdir="$(brew --repository)/Library/Taps/local/homebrew-writetofillet"
           mkdir -p "$tapdir/Formula"
           cp Formula/writetofillet.rb "$tapdir/Formula/writetofillet.rb"
-          # Point the formula URL for this platform to the locally built artifact
+          # Point the formula URL for this platform to the locally built artifact (use Python for robust edit)
           arch_name="x64"
           if [ "$(uname -m)" = "arm64" ]; then arch_name="arm64"; fi
-          sed -i '' -E "s|url \"https://github.com/[^\"]*/releases/latest/download/writetofillet-macos-(arm64|x64)\"|url \"file://$PWD/dist/writetofillet-macos-${arch_name}\"|" "$tapdir/Formula/writetofillet.rb"
+          export TAPDIR="$tapdir"
+          export ARCH_NAME="$arch_name"
+          python - <<'PY'
+import os, re
+tapdir = os.environ["TAPDIR"]
+arch = os.environ["ARCH_NAME"]
+p = f"{tapdir}/Formula/writetofillet.rb"
+with open(p, "r", encoding="utf-8") as f:
+    s = f.read()
+s = re.sub(r'^\s*url\s+"https://github\.com/[^"]+/releases/latest/download/writetofillet-macos-[^"]+"',
+           f'  url "file://{os.getcwd()}/dist/writetofillet-macos-{arch}"', s, flags=re.M)
+with open(p, "w", encoding="utf-8") as f:
+    f.write(s)
+print("Patched formula URL to local file")
+PY
           # Install from the local tap by name, not path
           brew install local/writetofillet/writetofillet
           writetofillet --version
