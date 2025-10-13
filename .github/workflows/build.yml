@@ -42,7 +42,8 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: writetofillet-${{ runner.os }}
+          # Use matrix.os to avoid collisions between macos-13 and macos-14 (both report runner.os=macOS)
+          name: writetofillet-${{ matrix.os }}
           path: dist/writetofillet-*
 
   publish:
