@@ -15,7 +15,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: pip install -e . pytest pytest-cov
+      - run: pip install -e . pytest pytest-cov pyyaml psutil tomli
       - run: pytest -q --cov=writetofillet --cov-report=xml
       - run: python scripts/gen_coverage_badge.py coverage.xml badges/coverage.svg
       - name: Commit badge
@@ -28,4 +28,3 @@ jobs:
             git push
           else
             echo "No badge changes."
-
