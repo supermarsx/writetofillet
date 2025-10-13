@@ -21,9 +21,10 @@ jobs:
         shell: powershell
         run: |
           iwr -useb get.scoop.sh | iex
+          # Ensure Scoop shims are on PATH for subsequent steps
+          echo "$env:USERPROFILE\scoop\shims" | Out-File -FilePath $env:GITHUB_PATH -Encoding ascii -Append
       - name: Scoop install from manifest
         shell: powershell
         run: |
           scoop install $pwd\bucket\writetofillet.json
           writetofillet --version
-
