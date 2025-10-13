@@ -9,9 +9,17 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Brew install from formula
+      - name: Brew install from local tap
+        shell: bash
         run: |
-          brew install ./Formula/writetofillet.rb
+          set -euo pipefail
+          # Create a temporary local tap and copy the formula into it
+          brew tap-new local/writetofillet >/dev/null
+          tapdir="$(brew --repository)/Library/Taps/local/homebrew-writetofillet"
+          mkdir -p "$tapdir/Formula"
+          cp Formula/writetofillet.rb "$tapdir/Formula/writetofillet.rb"
+          # Install from the local tap by name, not path
+          brew install local/writetofillet/writetofillet
           writetofillet --version
   scoop-verify:
     runs-on: windows-latest
