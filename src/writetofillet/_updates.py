@@ -4,8 +4,8 @@
 """
 
 import json
+from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
-from urllib.error import URLError, HTTPError
 
 
 def check_updates(repo_url: str, logger) -> int:
@@ -15,7 +15,10 @@ def check_updates(repo_url: str, logger) -> int:
     \param logger Logger for warnings when network calls fail.
     \return 0 on success, non-zero on failure.
     """
-    api = repo_url.replace("https://github.com/", "https://api.github.com/repos/") + "/releases/latest"
+    api = (
+        repo_url.replace("https://github.com/", "https://api.github.com/repos/")
+        + "/releases/latest"
+    )
     try:
         req = Request(api, headers={"User-Agent": "writetofillet"})
         with urlopen(req, timeout=10) as resp:

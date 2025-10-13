@@ -5,8 +5,8 @@ Generate a coverage badge SVG from coverage.xml (Cobertura).
 Usage:
   python scripts/gen_coverage_badge.py coverage.xml badges/coverage.svg
 """
-import sys
 import os
+import sys
 import xml.etree.ElementTree as ET
 
 
@@ -98,4 +98,3 @@ def main(argv):
 
 if __name__ == "__main__":
     raise SystemExit(main(sys.argv))
-

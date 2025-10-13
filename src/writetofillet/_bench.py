@@ -8,13 +8,13 @@ structured results and a best recommendation.
 """
 
 import os
-import time
 import tempfile
+import time
+from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, List, Optional, Tuple
 
-from ._pump import pump_to_file, threaded_pump, pipeline_generate
+from ._pump import pipeline_generate, pump_to_file, threaded_pump
 
 
 def _iter_randbin(chunk: int) -> Iterable[bytes]:
@@ -23,6 +23,7 @@ def _iter_randbin(chunk: int) -> Iterable[bytes]:
     \param chunk Chunk size in bytes.
     \return Infinite iterator of bytes.
     """
+
     def gen():
         while True:
             yield os.urandom(chunk)
@@ -48,7 +49,7 @@ def _cpu_percent(elapsed: float, t_start: float, t_end: float) -> float:
     return min(100.0, max(0.0, (proctime / elapsed) * (100.0 / cpus)))
 
 
-def _rss_bytes() -> Optional[int]:
+def _rss_bytes() -> int | None:
     """Return current process RSS in bytes, if available.
 
     Uses psutil when present; otherwise returns None.
@@ -68,10 +69,17 @@ class BenchResult:
     concurrency: str
     throughput_bps: float
     cpu_percent: float
-    rss_bytes: Optional[int]
+    rss_bytes: int | None
 
 
-def run_benchmark(bench_size: int, logger, *, candidate_chunks: List[int] | None = None, candidate_workers: List[int] | None = None, include_generate: bool = True) -> Tuple[List[BenchResult], BenchResult]:
+def run_benchmark(
+    bench_size: int,
+    logger,
+    *,
+    candidate_chunks: list[int] | None = None,
+    candidate_workers: list[int] | None = None,
+    include_generate: bool = True,
+) -> tuple[list[BenchResult], BenchResult]:
     """Run the benchmark suite and return all results and the best.
 
     \param bench_size Target bytes to write per scenario.
@@ -90,12 +98,12 @@ def run_benchmark(bench_size: int, logger, *, candidate_chunks: List[int] | None
         ncpu = max(1, multiprocessing.cpu_count())
         candidate_workers = [w for w in [1, 2, 4, 8] if w <= ncpu]
 
-    results: List[BenchResult] = []
+    results: list[BenchResult] = []
     with tempfile.TemporaryDirectory() as td:
         dpath = Path(td)
         for chunk in candidate_chunks:
             for workers in candidate_workers:
-                for concurrency in (["write", "generate"] if include_generate else ["write"]):
+                for concurrency in ["write", "generate"] if include_generate else ["write"]:
                     # Prepare iterator and target
                     it = _iter_randbin(chunk)
                     target = dpath / f"bench-{concurrency}-{workers}-{chunk}.bin"
@@ -105,12 +113,42 @@ def run_benchmark(bench_size: int, logger, *, candidate_chunks: List[int] | None
                     t0 = time.monotonic()
                     if concurrency == "write":
                         if workers > 1:
-                            threaded_pump(target, it, append=False, size_limit=bench_size, times=None, workers=workers, rate_bps=None, progress=False, progress_interval=1.0)
+                            threaded_pump(
+                                target,
+                                it,
+                                append=False,
+                                size_limit=bench_size,
+                                times=None,
+                                workers=workers,
+                                rate_bps=None,
+                                progress=False,
+                                progress_interval=1.0,
+                            )
                         else:
-                            pump_to_file(target, it, append=False, size_limit=bench_size, times=None, rate_bps=None, progress=False, progress_interval=1.0)
+                            pump_to_file(
+                                target,
+                                it,
+                                append=False,
+                                size_limit=bench_size,
+                                times=None,
+                                rate_bps=None,
+                                progress=False,
+                                progress_interval=1.0,
+                            )
                     else:
                         # generate concurrency
-                        pipeline_generate(target, it, append=False, size_limit=bench_size, times=None, rate_bps=None, progress=False, progress_interval=1.0, gen_workers=workers, chunk_size=chunk)
+                        pipeline_generate(
+                            target,
+                            it,
+                            append=False,
+                            size_limit=bench_size,
+                            times=None,
+                            rate_bps=None,
+                            progress=False,
+                            progress_interval=1.0,
+                            gen_workers=workers,
+                            chunk_size=chunk,
+                        )
                     t1 = time.monotonic()
                     pt1 = time.process_time()
                     rss1 = _rss_bytes()
@@ -118,11 +156,21 @@ def run_benchmark(bench_size: int, logger, *, candidate_chunks: List[int] | None
                     thr = bench_size / elapsed
                     cpu = _cpu_percent(elapsed, pt0, pt1)
                     rss = rss1 if (rss0 is None or rss1 is None) else max(0, rss1 - rss0)
-                    results.append(BenchResult(chunk=chunk, workers=workers, concurrency=concurrency, throughput_bps=thr, cpu_percent=cpu, rss_bytes=rss))
+                    results.append(
+                        BenchResult(
+                            chunk=chunk,
+                            workers=workers,
+                            concurrency=concurrency,
+                            throughput_bps=thr,
+                            cpu_percent=cpu,
+                            rss_bytes=rss,
+                        )
+                    )
                     try:
                         target.unlink(missing_ok=True)
                     except Exception:
                         pass
+
     # Pick best: max throughput, tie-break by lower CPU then lower RSS
     def key(br: BenchResult):
         return (br.throughput_bps, -br.cpu_percent, -(br.rss_bytes or 0))

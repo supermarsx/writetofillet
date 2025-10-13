@@ -3,13 +3,13 @@
 \brief Pumping strategies: direct streaming, RAM buffering, threaded, pipeline.
 """
 
-import sys
-import os
-import time
-import threading
-from pathlib import Path
-from typing import Iterable, Optional
 import multiprocessing
+import os
+import sys
+import threading
+import time
+from collections.abc import Iterable
+from pathlib import Path
 
 from ._sizeutil import fmt_bytes, fmt_eta
 
@@ -17,10 +17,11 @@ from ._sizeutil import fmt_bytes, fmt_eta
 def _enable_sparse_if_supported(f):
     try:
         import os
+
         if os.name != "nt":
             return
-        import msvcrt
         import ctypes
+        import msvcrt
 
         FSCTL_SET_SPARSE = 0x900C4
         handle = msvcrt.get_osfhandle(f.fileno())
@@ -28,7 +29,16 @@ def _enable_sparse_if_supported(f):
         DeviceIoControl = ctypes.windll.kernel32.DeviceIoControl
         DWORD = ctypes.c_ulong
         lpBytesReturned = DWORD(0)
-        res = DeviceIoControl(handle, DWORD(FSCTL_SET_SPARSE), None, DWORD(0), None, DWORD(0), ctypes.byref(lpBytesReturned), None)
+        res = DeviceIoControl(
+            handle,
+            DWORD(FSCTL_SET_SPARSE),
+            None,
+            DWORD(0),
+            None,
+            DWORD(0),
+            ctypes.byref(lpBytesReturned),
+            None,
+        )
         # Ignore result; on failure, continue without sparse attribute
     except Exception:
         pass
@@ -42,7 +52,27 @@ def _write_or_seek(f, chunk: bytes, *, sparse: bool):
         f.write(chunk)
 
 
-def pump_to_file(path: Path, data_iter: Iterable[bytes], *, append: bool, size_limit: Optional[int], times: Optional[int], rate_bps: Optional[int], progress: bool, progress_interval: float, fsync_interval: Optional[int] = None, sparse: bool = False, cpu_limit: Optional[float] = None, ram_limit: Optional[int] = None, compress: str = "none", hash_algo: Optional[str] = None, verify: bool = False, io_retries: int = 0, error_budget: int = 0, start_offset: Optional[int] = None):
+def pump_to_file(
+    path: Path,
+    data_iter: Iterable[bytes],
+    *,
+    append: bool,
+    size_limit: int | None,
+    times: int | None,
+    rate_bps: int | None,
+    progress: bool,
+    progress_interval: float,
+    fsync_interval: int | None = None,
+    sparse: bool = False,
+    cpu_limit: float | None = None,
+    ram_limit: int | None = None,
+    compress: str = "none",
+    hash_algo: str | None = None,
+    verify: bool = False,
+    io_retries: int = 0,
+    error_budget: int = 0,
+    start_offset: int | None = None,
+):
     """Write to a file sequentially from a byte iterator.
 
     \param path Destination file path.
@@ -66,16 +96,18 @@ def pump_to_file(path: Path, data_iter: Iterable[bytes], *, append: bool, size_l
     last_report = start
     synced = 0
     # stdout handling
-    use_stdout = (str(path) == "-")
+    use_stdout = str(path) == "-"
     hasher = None
     if hash_algo:
         import hashlib
+
         hasher = getattr(hashlib, hash_algo)()
     if use_stdout:
         f = sys.stdout.buffer
         close_f = False
     else:
         import gzip
+
         rawf = open(path, mode)
         if start_offset is not None and not append:
             try:
@@ -133,9 +165,12 @@ def pump_to_file(path: Path, data_iter: Iterable[bytes], *, append: bool, size_l
                 if ram_limit:
                     try:
                         import psutil
+
                         rss = psutil.Process().memory_info().rss
                         if rss > ram_limit:
-                            print(f"[error] RAM limit exceeded: {rss} > {ram_limit}", file=sys.stderr)
+                            print(
+                                f"[error] RAM limit exceeded: {rss} > {ram_limit}", file=sys.stderr
+                            )
                             raise SystemExit(4)
                     except ImportError:
                         pass
@@ -204,9 +239,12 @@ def pump_to_file(path: Path, data_iter: Iterable[bytes], *, append: bool, size_l
                 if ram_limit:
                     try:
                         import psutil
+
                         rss = psutil.Process().memory_info().rss
                         if rss > ram_limit:
-                            print(f"[error] RAM limit exceeded: {rss} > {ram_limit}", file=sys.stderr)
+                            print(
+                                f"[error] RAM limit exceeded: {rss} > {ram_limit}", file=sys.stderr
+                            )
                             raise SystemExit(4)
                     except ImportError:
                         pass
@@ -231,6 +269,7 @@ def pump_to_file(path: Path, data_iter: Iterable[bytes], *, append: bool, size_l
         if verify and not use_stdout and compress != "gzip" and hasher is not None:
             try:
                 import hashlib
+
                 hv = getattr(hashlib, hash_algo)()
                 with open(path, "rb") as rf:
                     for blk in iter(lambda: rf.read(1024 * 1024), b""):
@@ -242,7 +281,22 @@ def pump_to_file(path: Path, data_iter: Iterable[bytes], *, append: bool, size_l
                 pass
 
 
-def buffer_and_dump(path: Path, data_iter: Iterable[bytes], *, append: bool, size_limit: Optional[int], times: Optional[int], rate_bps: Optional[int], progress: bool, progress_interval: float, ram_max: int, fsync_interval: Optional[int] = None, sparse: bool = False, cpu_limit: Optional[float] = None, ram_limit: Optional[int] = None):
+def buffer_and_dump(
+    path: Path,
+    data_iter: Iterable[bytes],
+    *,
+    append: bool,
+    size_limit: int | None,
+    times: int | None,
+    rate_bps: int | None,
+    progress: bool,
+    progress_interval: float,
+    ram_max: int,
+    fsync_interval: int | None = None,
+    sparse: bool = False,
+    cpu_limit: float | None = None,
+    ram_limit: int | None = None,
+):
     """Accumulate into RAM, then dump to disk in a single write.
 
     Guarded by \p ram_max to avoid excessive memory usage. Supports
@@ -257,7 +311,9 @@ def buffer_and_dump(path: Path, data_iter: Iterable[bytes], *, append: bool, siz
     def add_chunk(chunk: bytes):
         nonlocal written
         if len(buf) + len(chunk) > ram_max:
-            raise SystemExit(f"RAM buffer would exceed --ram-max {fmt_bytes(ram_max)}; use --buffer-mode stream or increase --ram-max")
+            raise SystemExit(
+                f"RAM buffer would exceed --ram-max {fmt_bytes(ram_max)}; use --buffer-mode stream or increase --ram-max"
+            )
         buf.extend(chunk)
         written += len(chunk)
         if rate_bps:
@@ -269,14 +325,19 @@ def buffer_and_dump(path: Path, data_iter: Iterable[bytes], *, append: bool, siz
                 time.sleep(min(0.1, (written - allowed) / rate_bps))
         if cpu_limit:
             elapsed = max(1e-6, time.monotonic() - start)
-            cpu_pct = ((time.process_time()) / elapsed) * (100.0 / max(1, multiprocessing.cpu_count()))
+            cpu_pct = ((time.process_time()) / elapsed) * (
+                100.0 / max(1, multiprocessing.cpu_count())
+            )
             while cpu_pct > cpu_limit:
                 time.sleep(0.005)
                 elapsed = max(1e-6, time.monotonic() - start)
-                cpu_pct = ((time.process_time()) / elapsed) * (100.0 / max(1, multiprocessing.cpu_count()))
+                cpu_pct = ((time.process_time()) / elapsed) * (
+                    100.0 / max(1, multiprocessing.cpu_count())
+                )
         if ram_limit:
             try:
                 import psutil
+
                 rss = psutil.Process().memory_info().rss
                 if rss > ram_limit:
                     print(f"[error] RAM limit exceeded: {rss} > {ram_limit}", file=sys.stderr)
@@ -332,7 +393,22 @@ def buffer_and_dump(path: Path, data_iter: Iterable[bytes], *, append: bool, siz
                 pass
 
 
-def threaded_pump(path: Path, data_iter: Iterable[bytes], *, append: bool, size_limit: Optional[int], times: Optional[int], workers: int, rate_bps: Optional[int], progress: bool, progress_interval: float, fsync_interval: Optional[int] = None, sparse: bool = False, cpu_limit: Optional[float] = None, ram_limit: Optional[int] = None):
+def threaded_pump(
+    path: Path,
+    data_iter: Iterable[bytes],
+    *,
+    append: bool,
+    size_limit: int | None,
+    times: int | None,
+    workers: int,
+    rate_bps: int | None,
+    progress: bool,
+    progress_interval: float,
+    fsync_interval: int | None = None,
+    sparse: bool = False,
+    cpu_limit: float | None = None,
+    ram_limit: int | None = None,
+):
     """Run multiple writer threads against a shared file handle.
 
     Uses coarse-grained locking; suitable for high-throughput scenarios.
@@ -397,17 +473,24 @@ def threaded_pump(path: Path, data_iter: Iterable[bytes], *, append: bool, size_
                             cur = state["written"]
                 if cpu_limit:
                     elapsed = max(1e-6, time.monotonic() - start)
-                    cpu_pct = ((time.process_time()) / elapsed) * (100.0 / max(1, multiprocessing.cpu_count()))
+                    cpu_pct = ((time.process_time()) / elapsed) * (
+                        100.0 / max(1, multiprocessing.cpu_count())
+                    )
                     while cpu_pct > cpu_limit:
                         time.sleep(0.005)
                         elapsed = max(1e-6, time.monotonic() - start)
-                        cpu_pct = ((time.process_time()) / elapsed) * (100.0 / max(1, multiprocessing.cpu_count()))
+                        cpu_pct = ((time.process_time()) / elapsed) * (
+                            100.0 / max(1, multiprocessing.cpu_count())
+                        )
                 if ram_limit:
                     try:
                         import psutil
+
                         rss = psutil.Process().memory_info().rss
                         if rss > ram_limit:
-                            print(f"[error] RAM limit exceeded: {rss} > {ram_limit}", file=sys.stderr)
+                            print(
+                                f"[error] RAM limit exceeded: {rss} > {ram_limit}", file=sys.stderr
+                            )
                             raise SystemExit(4)
                     except ImportError:
                         pass
@@ -447,7 +530,23 @@ def threaded_pump(path: Path, data_iter: Iterable[bytes], *, append: bool, size_
         state["done"] = True
 
 
-def pipeline_generate(path: Path, data_iter: Iterable[bytes], *, append: bool, size_limit: Optional[int], times: Optional[int], rate_bps: Optional[int], progress: bool, progress_interval: float, gen_workers: int, chunk_size: int, fsync_interval: Optional[int] = None, sparse: bool = False, cpu_limit: Optional[float] = None, ram_limit: Optional[int] = None):
+def pipeline_generate(
+    path: Path,
+    data_iter: Iterable[bytes],
+    *,
+    append: bool,
+    size_limit: int | None,
+    times: int | None,
+    rate_bps: int | None,
+    progress: bool,
+    progress_interval: float,
+    gen_workers: int,
+    chunk_size: int,
+    fsync_interval: int | None = None,
+    sparse: bool = False,
+    cpu_limit: float | None = None,
+    ram_limit: int | None = None,
+):
     """Fan-out producers (generators) feeding a single writer via a queue.
 
     \param gen_workers Number of generator threads.
@@ -459,9 +558,15 @@ def pipeline_generate(path: Path, data_iter: Iterable[bytes], *, append: bool, s
     """
     import queue
 
-    q: "queue.Queue[Optional[bytes]]" = queue.Queue(maxsize=max(8, 1024 * 1024 // max(1, chunk_size)))
+    q: queue.Queue[bytes | None] = queue.Queue(maxsize=max(8, 1024 * 1024 // max(1, chunk_size)))
     lock = threading.Lock()
-    state = {"written": 0, "produced": 0, "remaining_writes": times, "target": size_limit, "done": False}
+    state = {
+        "written": 0,
+        "produced": 0,
+        "remaining_writes": times,
+        "target": size_limit,
+        "done": False,
+    }
     start = time.monotonic()
 
     def producer():
@@ -528,17 +633,24 @@ def pipeline_generate(path: Path, data_iter: Iterable[bytes], *, append: bool, s
                             cur = state["written"]
                 if cpu_limit:
                     elapsed = max(1e-6, time.monotonic() - start)
-                    cpu_pct = ((time.process_time()) / elapsed) * (100.0 / max(1, multiprocessing.cpu_count()))
+                    cpu_pct = ((time.process_time()) / elapsed) * (
+                        100.0 / max(1, multiprocessing.cpu_count())
+                    )
                     while cpu_pct > cpu_limit:
                         time.sleep(0.005)
                         elapsed = max(1e-6, time.monotonic() - start)
-                        cpu_pct = ((time.process_time()) / elapsed) * (100.0 / max(1, multiprocessing.cpu_count()))
+                        cpu_pct = ((time.process_time()) / elapsed) * (
+                            100.0 / max(1, multiprocessing.cpu_count())
+                        )
                 if ram_limit:
                     try:
                         import psutil
+
                         rss = psutil.Process().memory_info().rss
                         if rss > ram_limit:
-                            print(f"[error] RAM limit exceeded: {rss} > {ram_limit}", file=sys.stderr)
+                            print(
+                                f"[error] RAM limit exceeded: {rss} > {ram_limit}", file=sys.stderr
+                            )
                             raise SystemExit(4)
                     except ImportError:
                         pass
@@ -552,7 +664,9 @@ def pipeline_generate(path: Path, data_iter: Iterable[bytes], *, append: bool, s
                         eta = rem / rate if rate > 0 else float("inf")
                         msg = f"\rProgress: {fmt_bytes(state['written'])} ({pct:.1f}%) @ {fmt_bytes(int(rate))}/s ETA {fmt_eta(eta)}"
                     else:
-                        msg = f"\rProgress: {fmt_bytes(state['written'])} @ {fmt_bytes(int(rate))}/s"
+                        msg = (
+                            f"\rProgress: {fmt_bytes(state['written'])} @ {fmt_bytes(int(rate))}/s"
+                        )
                     print(msg, end="", file=sys.stderr)
                     last_report = time.monotonic()
         if progress:

@@ -1,4 +1,5 @@
 from pathlib import Path
+
 from writetofillet.cli import main
 
 
@@ -18,4 +19,3 @@ def test_write_mode_normal_write(tmp_path: Path):
     # Now overwrite using condensed mode
     run(["--write-mode", "normal-write", "--word", "B", "--times", "1", str(out)])
     assert out.read_bytes() == b"B"
-

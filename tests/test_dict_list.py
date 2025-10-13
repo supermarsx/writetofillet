@@ -1,4 +1,5 @@
 from pathlib import Path
+
 from writetofillet.cli import main
 
 
@@ -14,14 +15,20 @@ def test_dict_list_ram_presorted(tmp_path: Path):
     lst = tmp_path / "dicts.txt"
     lst.write_text("d1.txt\n" + str(d2) + "\n", encoding="utf-8")
     out = tmp_path / "out.txt"
-    run([
-        "--dict-list", str(lst),
-        "--dict-order", "presorted",
-        "--dict-ram",
-        "--times", "3",
-        "--newline-mode", "word",
-        str(out),
-    ])
+    run(
+        [
+            "--dict-list",
+            str(lst),
+            "--dict-order",
+            "presorted",
+            "--dict-ram",
+            "--times",
+            "3",
+            "--newline-mode",
+            "word",
+            str(out),
+        ]
+    )
     # presorted combined: a, b, c
     assert out.read_text(encoding="utf-8") == "a\nb\nc\n"
 
@@ -34,12 +41,17 @@ def test_dict_list_stream_sequential(tmp_path: Path):
     lst = tmp_path / "dicts2.txt"
     lst.write_text("s1.txt\n" + str(d2) + "\n", encoding="utf-8")
     out = tmp_path / "out2.txt"
-    run([
-        "--dict-list", str(lst),
-        "--dict-order", "sequential",
-        "--times", "3",
-        "--newline-mode", "word",
-        str(out),
-    ])
+    run(
+        [
+            "--dict-list",
+            str(lst),
+            "--dict-order",
+            "sequential",
+            "--times",
+            "3",
+            "--newline-mode",
+            "word",
+            str(out),
+        ]
+    )
     assert out.read_text(encoding="utf-8") == "x\ny\nz\n"
-

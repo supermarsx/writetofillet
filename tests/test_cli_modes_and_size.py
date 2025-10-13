@@ -1,4 +1,5 @@
 from pathlib import Path
+
 from writetofillet.cli import main
 
 
@@ -41,4 +42,3 @@ def test_word_size_truncation(tmp_path: Path):
     data = out.read_bytes()
     assert len(data) == 10
     assert data.startswith(b"XYZXYZXYZ")
-

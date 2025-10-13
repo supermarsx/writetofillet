@@ -20,4 +20,3 @@ def test_times_range_power(tmp_path):
     # Size should be between 1MiB and 2MiB approximately
     size = out.stat().st_size
     assert 1_024_000 <= size <= 2_100_000
-

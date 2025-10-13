@@ -1,4 +1,5 @@
 from pathlib import Path
+
 from writetofillet.cli import main
 
 
@@ -11,7 +12,9 @@ def test_dict_sequential_and_reverse(tmp_path: Path):
     words.write_text("one\ntwo\nthree\n", encoding="utf-8")
     out1 = tmp_path / "seq.txt"
     out2 = tmp_path / "rev.txt"
-    run(["--dict", str(words), "--dict-order", "sequential", "--times", "3", "--newline", str(out1)])
+    run(
+        ["--dict", str(words), "--dict-order", "sequential", "--times", "3", "--newline", str(out1)]
+    )
     run(["--dict", str(words), "--dict-order", "reverse", "--times", "3", "--newline", str(out2)])
     assert out1.read_text(encoding="utf-8") == "one\ntwo\nthree\n"
     assert out2.read_text(encoding="utf-8") == "three\ntwo\none\n"

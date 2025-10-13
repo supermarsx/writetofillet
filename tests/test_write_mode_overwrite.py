@@ -1,4 +1,5 @@
 from pathlib import Path
+
 from writetofillet.cli import main
 
 
@@ -11,4 +12,3 @@ def test_normal_write_overwrites(tmp_path: Path):
     run(["--write-mode", "normal-append", "--word", "A", "--times", "3", str(out)])
     run(["--write-mode", "normal-write", "--word", "B", "--times", "1", str(out)])
     assert out.read_text(encoding="utf-8") == "B"
-

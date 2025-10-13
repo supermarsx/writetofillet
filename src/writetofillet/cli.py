@@ -1,10 +1,9 @@
-import sys
-import os
-import threading
 import logging
 import random
+import sys
+import threading
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Optional, Iterable
 
 """
 \file cli.py
@@ -16,20 +15,20 @@ supports update checks, and then runs the main execution in its own thread.
 """
 
 from ._args import build_argparser, resolve_times
-from ._genutil import make_token_iter
-from ._sizeutil import fmt_bytes
-from ._pump import pump_to_file, threaded_pump, buffer_and_dump, pipeline_generate
-from ._updates import check_updates
 from ._bench import run_benchmark
+from ._genutil import make_token_iter
+from ._pump import buffer_and_dump, pipeline_generate, pump_to_file, threaded_pump
+from ._sizeutil import fmt_bytes
+from ._updates import check_updates
 
 
-def main(argv: Optional[Iterable[str]] = None) -> int:
+def main(argv: Iterable[str] | None = None) -> int:
     """Run the writetofillet CLI.
 
     \param argv Optional list of arguments (defaults to sys.argv[1:]).
     \return Process exit code (0 on success).
     """
-    from writetofillet import __version__, REPO_URL
+    from writetofillet import REPO_URL, __version__
 
     raw_argv = list(argv) if argv is not None else None
     # Pre-scan for --config
@@ -44,10 +43,12 @@ def main(argv: Optional[Iterable[str]] = None) -> int:
     if config_path:
         cfg = {}
         from pathlib import Path as _P
+
         p = _P(config_path)
         try:
             if p.suffix.lower() == ".json":
                 import json
+
                 cfg = json.loads(p.read_text(encoding="utf-8"))
             elif p.suffix.lower() == ".toml":
                 try:
@@ -57,6 +58,7 @@ def main(argv: Optional[Iterable[str]] = None) -> int:
                 cfg = tomllib.loads(p.read_text(encoding="utf-8"))
             elif p.suffix.lower() in (".yaml", ".yml"):
                 import yaml  # type: ignore
+
                 cfg = yaml.safe_load(p.read_text(encoding="utf-8")) or {}
         except Exception as e:
             print(f"[warn] Failed to load config {config_path}: {e}", file=sys.stderr)
@@ -72,7 +74,9 @@ def main(argv: Optional[Iterable[str]] = None) -> int:
     # Banner (stderr): always show
     print(f"writetofillet v{__version__} — {REPO_URL}", file=sys.stderr)
 
-    logging.basicConfig(level=getattr(logging, args.log_level), format="%(asctime)s %(levelname)s %(message)s")
+    logging.basicConfig(
+        level=getattr(logging, args.log_level), format="%(asctime)s %(levelname)s %(message)s"
+    )
     logger = logging.getLogger("writetofillet")
     if args.log_file:
         fh = logging.FileHandler(args.log_file)
@@ -91,13 +95,18 @@ def main(argv: Optional[Iterable[str]] = None) -> int:
         return check_updates(REPO_URL, logger)
 
     if getattr(args, "benchmark", False):
-        print("[info] Running local benchmark; this writes temporary files and deletes them.", file=sys.stderr)
+        print(
+            "[info] Running local benchmark; this writes temporary files and deletes them.",
+            file=sys.stderr,
+        )
         results, best = run_benchmark(int(args.bench_size), logger)
         # Print summary table
         print("chunk,workers,concurrency,throughput_mibs,cpu_pct,rss_mib")
         for r in results:
-            rss_mib = ("" if r.rss_bytes is None else f"{r.rss_bytes/(1024*1024):.1f}")
-            print(f"{r.chunk},{r.workers},{r.concurrency},{r.throughput_bps/(1024*1024):.2f},{r.cpu_percent:.1f},{rss_mib}")
+            rss_mib = "" if r.rss_bytes is None else f"{r.rss_bytes/(1024*1024):.1f}"
+            print(
+                f"{r.chunk},{r.workers},{r.concurrency},{r.throughput_bps/(1024*1024):.2f},{r.cpu_percent:.1f},{rss_mib}"
+            )
         print("\nRecommendation:")
         print(
             f"--chunk {best.chunk} --concurrency {best.concurrency} "
@@ -138,7 +147,7 @@ def main(argv: Optional[Iterable[str]] = None) -> int:
     if args.filelist:
         list_path = Path(args.filelist)
         base_dir = list_path.parent
-        with open(list_path, "r", encoding="utf-8", errors="replace") as fl:
+        with open(list_path, encoding="utf-8", errors="replace") as fl:
             for line in fl:
                 line = line.strip()
                 if not line or line.startswith("#"):
@@ -153,7 +162,7 @@ def main(argv: Optional[Iterable[str]] = None) -> int:
         return 2
 
     use_ram = args.buffer_mode == "ram"
-    expected: Optional[int] = None
+    expected: int | None = None
     if size_limit is not None:
         expected = size_limit
     elif n_times is not None:
@@ -175,10 +184,15 @@ def main(argv: Optional[Iterable[str]] = None) -> int:
             expected = n_times * int(args.chunk)
 
     if use_ram and expected is not None and expected > args.ram_max:
-        print(f"[info] Falling back to streaming: expected {fmt_bytes(expected)} exceeds --ram-max {fmt_bytes(args.ram_max)}", file=sys.stderr)
+        print(
+            f"[info] Falling back to streaming: expected {fmt_bytes(expected)} exceeds --ram-max {fmt_bytes(args.ram_max)}",
+            file=sys.stderr,
+        )
         use_ram = False
     if use_ram and args.workers > 1:
-        print("[info] --buffer-mode ram forces single-thread; ignoring --workers > 1", file=sys.stderr)
+        print(
+            "[info] --buffer-mode ram forces single-thread; ignoring --workers > 1", file=sys.stderr
+        )
         args.workers = 1
 
     # Global disk-guard upfront check: sum expected per device and compare to free + margin
@@ -212,18 +226,21 @@ def main(argv: Optional[Iterable[str]] = None) -> int:
 
     def run_logic():
         if args.disable_disk_guard:
-            print("[warn] Disk-space guard disabled; writes may fail or fill disk.", file=sys.stderr)
+            print(
+                "[warn] Disk-space guard disabled; writes may fail or fill disk.", file=sys.stderr
+            )
         # Compression or hashing forces single writer
-        if args.compress != 'none' and args.workers > 1:
+        if args.compress != "none" and args.workers > 1:
             print("[info] Forcing single-writer due to compression", file=sys.stderr)
             args.workers = 1
         for tgt in targets:
-            tgt_parent = Path(tgt).parent if str(tgt) != '-' else Path('.')
+            tgt_parent = Path(tgt).parent if str(tgt) != "-" else Path(".")
             tgt_parent.mkdir(parents=True, exist_ok=True)
             # Disk free space guardrail (per target) when expected is known
-            if not args.disable_disk_guard and expected is not None and str(tgt) != '-':
+            if not args.disable_disk_guard and expected is not None and str(tgt) != "-":
                 try:
                     import shutil
+
                     free = shutil.disk_usage(str(tgt_parent)).free
                 except Exception:
                     free = None
@@ -235,14 +252,21 @@ def main(argv: Optional[Iterable[str]] = None) -> int:
                         file=sys.stderr,
                     )
                     return 3
-            logger.info("target=%s start: mode=%s, append=%s, size=%s, times=%s", tgt, args.pump_mode, append, size_limit, n_times)
+            logger.info(
+                "target=%s start: mode=%s, append=%s, size=%s, times=%s",
+                tgt,
+                args.pump_mode,
+                append,
+                size_limit,
+                n_times,
+            )
             # New iterator per target
             data_iter = make_token_iter(args)
             # Pre-size ops
-            if str(tgt) != '-' and getattr(args, 'truncate', None):
-                with open(tgt, 'ab') as _tf:
+            if str(tgt) != "-" and getattr(args, "truncate", None):
+                with open(tgt, "ab") as _tf:
                     _tf.truncate(int(args.truncate))
-            if str(tgt) != '-' and getattr(args, 'fallocate', None):
+            if str(tgt) != "-" and getattr(args, "fallocate", None):
                 try:
                     fd = os.open(str(tgt), os.O_RDWR | os.O_CREAT)
                     try:
@@ -255,17 +279,79 @@ def main(argv: Optional[Iterable[str]] = None) -> int:
                     pass
             eff_fsync = args.fsync_interval if getattr(args, "fsync_enable", False) else None
             if use_ram:
-                buffer_and_dump(tgt, data_iter, append=append, size_limit=size_limit, times=n_times, rate_bps=args.rate, progress=args.progress, progress_interval=args.progress_interval, ram_max=args.ram_max, fsync_interval=eff_fsync, sparse=args.sparse, cpu_limit=args.cpu_limit, ram_limit=args.ram_limit)
+                buffer_and_dump(
+                    tgt,
+                    data_iter,
+                    append=append,
+                    size_limit=size_limit,
+                    times=n_times,
+                    rate_bps=args.rate,
+                    progress=args.progress,
+                    progress_interval=args.progress_interval,
+                    ram_max=args.ram_max,
+                    fsync_interval=eff_fsync,
+                    sparse=args.sparse,
+                    cpu_limit=args.cpu_limit,
+                    ram_limit=args.ram_limit,
+                )
             else:
                 if args.concurrency == "write":
                     if args.workers > 1:
-                        threaded_pump(tgt, data_iter, append=append, size_limit=size_limit, times=n_times, workers=args.workers, rate_bps=args.rate, progress=args.progress, progress_interval=args.progress_interval, fsync_interval=eff_fsync, sparse=args.sparse, cpu_limit=args.cpu_limit, ram_limit=args.ram_limit)
+                        threaded_pump(
+                            tgt,
+                            data_iter,
+                            append=append,
+                            size_limit=size_limit,
+                            times=n_times,
+                            workers=args.workers,
+                            rate_bps=args.rate,
+                            progress=args.progress,
+                            progress_interval=args.progress_interval,
+                            fsync_interval=eff_fsync,
+                            sparse=args.sparse,
+                            cpu_limit=args.cpu_limit,
+                            ram_limit=args.ram_limit,
+                        )
                     else:
-                        algo = getattr(args, 'hash', None)
-                        start_off = int(args.offset) if getattr(args, 'offset', None) else None
-                        pump_to_file(tgt, data_iter, append=append or bool(getattr(args, 'resume', False)), size_limit=size_limit, times=n_times, rate_bps=args.rate, progress=args.progress, progress_interval=args.progress_interval, fsync_interval=eff_fsync, sparse=args.sparse, cpu_limit=args.cpu_limit, ram_limit=args.ram_limit, compress=args.compress, hash_algo=algo, verify=getattr(args, 'verify', False), io_retries=getattr(args, 'io_retries', 0), error_budget=getattr(args, 'error_budget', 0), start_offset=start_off)
+                        algo = getattr(args, "hash", None)
+                        start_off = int(args.offset) if getattr(args, "offset", None) else None
+                        pump_to_file(
+                            tgt,
+                            data_iter,
+                            append=append or bool(getattr(args, "resume", False)),
+                            size_limit=size_limit,
+                            times=n_times,
+                            rate_bps=args.rate,
+                            progress=args.progress,
+                            progress_interval=args.progress_interval,
+                            fsync_interval=eff_fsync,
+                            sparse=args.sparse,
+                            cpu_limit=args.cpu_limit,
+                            ram_limit=args.ram_limit,
+                            compress=args.compress,
+                            hash_algo=algo,
+                            verify=getattr(args, "verify", False),
+                            io_retries=getattr(args, "io_retries", 0),
+                            error_budget=getattr(args, "error_budget", 0),
+                            start_offset=start_off,
+                        )
                 else:
-                    pipeline_generate(tgt, data_iter, append=append, size_limit=size_limit, times=n_times, rate_bps=args.rate, progress=args.progress, progress_interval=args.progress_interval, gen_workers=args.gen_workers, chunk_size=int(args.chunk), fsync_interval=eff_fsync, sparse=args.sparse, cpu_limit=args.cpu_limit, ram_limit=args.ram_limit)
+                    pipeline_generate(
+                        tgt,
+                        data_iter,
+                        append=append,
+                        size_limit=size_limit,
+                        times=n_times,
+                        rate_bps=args.rate,
+                        progress=args.progress,
+                        progress_interval=args.progress_interval,
+                        gen_workers=args.gen_workers,
+                        chunk_size=int(args.chunk),
+                        fsync_interval=eff_fsync,
+                        sparse=args.sparse,
+                        cpu_limit=args.cpu_limit,
+                        ram_limit=args.ram_limit,
+                    )
             logger.info("target=%s done", tgt)
 
     main_thread = threading.Thread(target=run_logic, name="writetofillet-main")

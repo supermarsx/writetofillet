@@ -1,4 +1,5 @@
 from pathlib import Path
+
 from writetofillet.cli import main
 
 
@@ -27,7 +28,18 @@ def test_filelist_paths(tmp_path: Path):
     filelist = tmp_path / "list.txt"
     filelist.write_text(f"x.txt\n{f2}\n", encoding="utf-8")
     # Pass tmp_path as positional path; targets come from filelist
-    run(["--write-mode", "binary-append", "--times", "2", "--chunk", "1KiB", "--filelist", str(filelist), str(tmp_path)])
+    run(
+        [
+            "--write-mode",
+            "binary-append",
+            "--times",
+            "2",
+            "--chunk",
+            "1KiB",
+            "--filelist",
+            str(filelist),
+            str(tmp_path),
+        ]
+    )
     assert f1.stat().st_size == 2048
     assert f2.stat().st_size == 2048
-

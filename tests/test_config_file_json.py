@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+
 from writetofillet.cli import main
 
 
@@ -15,4 +16,3 @@ def test_config_json_applies_defaults(tmp_path: Path):
     rc = main(["--config", str(cpath), str(out)])
     assert rc == 0
     assert out.read_text(encoding="utf-8") == "QQ"
-

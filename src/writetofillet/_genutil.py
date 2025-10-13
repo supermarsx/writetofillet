@@ -3,14 +3,12 @@
 \brief Data generation utilities for random and word-based modes.
 """
 
+import codecs
 import os
 import random
 import string
+from collections.abc import Iterable
 from pathlib import Path
-import codecs
-from typing import Iterable, Dict, List, Tuple
-
-from ._dictutil import iter_dict_words
 
 
 def detect_encoding(path: Path) -> str:
@@ -53,7 +51,9 @@ def gen_random_bytes(mode: str, chunk_size: int = 8192) -> bytes:
         s = os.urandom(max(1, chunk_size // 2)).hex()
         return s.encode("ascii")
     if mode == "random":
-        return gen_random_bytes(random.choice(["bin1", "bin0", "randbin", "randutf8", "randhex"]) , chunk_size)
+        return gen_random_bytes(
+            random.choice(["bin1", "bin0", "randbin", "randutf8", "randhex"]), chunk_size
+        )
     raise ValueError(f"Unknown mode: {mode}")
 
 
@@ -84,7 +84,7 @@ def make_token_iter(args) -> Iterable[bytes]:
         if getattr(args, "dict_list", None):
             list_file = Path(args.dict_list)
             base_dir = list_file.parent
-            with open(list_file, "r", encoding="utf-8", errors="replace") as f:
+            with open(list_file, encoding="utf-8", errors="replace") as f:
                 for line in f:
                     line = line.strip()
                     if not line or line.startswith("#"):
@@ -103,16 +103,16 @@ def make_token_iter(args) -> Iterable[bytes]:
         if dict_paths:
             if args.dict_ram:
                 # Load all dict files into memory; support optional weights: "token weight"
-                words: List[str] = []
-                weights: List[float] = []
+                words: list[str] = []
+                weights: list[float] = []
                 for p in dict_paths:
-                    with open(p, "r", encoding=enc, errors="replace") as f:
+                    with open(p, encoding=enc, errors="replace") as f:
                         for line in f:
                             s = line.strip()
                             if not s:
                                 continue
                             parts = s.split()
-                            if len(parts) >= 2 and parts[-1].replace('.', '', 1).isdigit():
+                            if len(parts) >= 2 and parts[-1].replace(".", "", 1).isdigit():
                                 try:
                                     w = float(parts[-1])
                                     token = " ".join(parts[:-1])
@@ -124,18 +124,19 @@ def make_token_iter(args) -> Iterable[bytes]:
                             words.append(s)
                 if args.markov:
                     # Simple word-level N-gram model
-                    n = max(2, int(getattr(args, 'ngram', 2) or 2))
+                    n = max(2, int(getattr(args, "ngram", 2) or 2))
                     # Build transitions
-                    transitions: Dict[Tuple[str, ...], List[str]] = {}
+                    transitions: dict[tuple[str, ...], list[str]] = {}
                     seq = words
                     if len(seq) >= n:
                         for i in range(len(seq) - n + 1):
-                            key = tuple(seq[i:i + n - 1])
+                            key = tuple(seq[i : i + n - 1])
                             nxt = seq[i + n - 1]
                             transitions.setdefault(key, []).append(nxt)
 
                     def ram_markov():
                         import random as _r
+
                         if not transitions:
                             while True:
                                 for w in seq:
@@ -154,59 +155,75 @@ def make_token_iter(args) -> Iterable[bytes]:
                     token_source = ram_markov()
                 elif args.dict_order == "reverse":
                     seq = list(reversed(words))
+
                     def ram_seq():
                         while True:
                             for w in seq:
                                 yield w
+
                     token_source = ram_seq()
                 elif args.dict_order == "presorted":
                     seq = sorted(words)
+
                     def ram_sorted():
                         while True:
                             for w in seq:
                                 yield w
+
                     token_source = ram_sorted()
                 elif args.dict_order == "random":
+
                     def ram_random():
                         while True:
                             if weights:
                                 yield random.choices(words, weights=weights, k=1)[0]
                             else:
                                 yield random.choice(words)
+
                     token_source = ram_random()
                 else:
+
                     def ram_seq2():
                         while True:
                             for w in words:
                                 yield w
+
                     token_source = ram_seq2()
             else:
                 # Streaming over multiple dict files supports sequential order only
                 if args.dict_order != "sequential":
-                    raise SystemExit("--dict-order requires --dict-ram for non-sequential orders across multiple dictionaries")
+                    raise SystemExit(
+                        "--dict-order requires --dict-ram for non-sequential orders across multiple dictionaries"
+                    )
+
                 def stream_multi_seq():
                     while True:
                         for p in dict_paths:
-                            with open(p, "r", encoding=enc, errors="replace") as f:
+                            with open(p, encoding=enc, errors="replace") as f:
                                 for line in f:
                                     line = line.strip()
                                     if line:
                                         yield line
+
                 token_source = stream_multi_seq()
         else:
             if args.word is None:
                 raise SystemExit("--word is required for pump-mode=word without --dict")
 
             if args.mode == "random":
+
                 def word_stream():
                     base = args.word
                     while True:
                         yield base.lower() if random.random() < 0.5 else base.upper()
+
                 token_source = word_stream()
             else:
+
                 def word_stream_fixed():
                     while True:
                         yield args.word
+
                 token_source = word_stream_fixed()
 
         def bytes_stream():
@@ -218,9 +235,12 @@ def make_token_iter(args) -> Iterable[bytes]:
                     yield t.encode(enc, errors="replace") + nl_bytes
                 else:
                     yield t.encode(enc, errors="replace")
+
         return bytes_stream()
     else:
+
         def bytes_stream():
             while True:
                 yield gen_random_bytes(pump_mode, args.chunk)
+
         return bytes_stream()

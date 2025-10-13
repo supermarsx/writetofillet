@@ -4,8 +4,8 @@
 """
 
 import random
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable
 
 
 def iter_dict_words(path: Path, order: str, encoding: str, in_memory: bool) -> Iterable[str]:
@@ -19,7 +19,7 @@ def iter_dict_words(path: Path, order: str, encoding: str, in_memory: bool) -> I
     \throws SystemExit when a non-sequential order is requested without RAM.
     """
     if in_memory:
-        with open(path, "r", encoding=encoding, errors="replace") as f:
+        with open(path, encoding=encoding, errors="replace") as f:
             words = [w.strip() for w in f if w.strip()]
         if order == "sequential":
             while True:
@@ -45,7 +45,7 @@ def iter_dict_words(path: Path, order: str, encoding: str, in_memory: bool) -> I
 
         def stream_seq():
             while True:
-                with open(path, "r", encoding=encoding, errors="replace") as f:
+                with open(path, encoding=encoding, errors="replace") as f:
                     for line in f:
                         line = line.strip()
                         if line:
