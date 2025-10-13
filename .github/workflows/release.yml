@@ -76,8 +76,7 @@ jobs:
         include:
           - os: ubuntu-24.04-arm64
           - os: macos-14
-          # Placeholder for Windows 11 arm64; requires appropriate runner support
-          # - os: windows-11
+          - os: windows-11-arm
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4

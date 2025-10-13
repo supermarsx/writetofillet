@@ -7,7 +7,7 @@ jobs:
   build-binaries:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-13, macos-14]
+        os: [ubuntu-latest, ubuntu-24.04-arm64, windows-latest, macos-13, macos-14]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -19,8 +19,28 @@ jobs:
       - name: Build
         run: |
           pyinstaller --onefile -n writetofillet src/writetofillet/cli.py
+      - name: Rename artifact with OS/arch suffix
+        shell: bash
+        run: |
+          set -euo pipefail
+          OS_NAME="${{ runner.os }}"
+          case "$OS_NAME" in
+            Linux) os=linux; ext="" ;;
+            macOS) os=macos; ext="" ;;
+            Windows) os=windows; ext=".exe" ;;
+            *) echo "Unknown OS $OS_NAME"; exit 1 ;;
+          esac
+          # Arch inference via runner label
+          case "${{ matrix.os }}" in
+            macos-13|ubuntu-latest|windows-latest) arch=x64 ;;
+            macos-14|ubuntu-24.04-arm64) arch=arm64 ;;
+            *) arch=unknown ;;
+          esac
+          src="dist/writetofillet$ext"
+          dst="dist/writetofillet-${os}-${arch}$ext"
+          mv "$src" "$dst"
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: writetofillet-${{ runner.os }}
-          path: dist/*
+          path: dist/writetofillet-*
