@@ -1,7 +1,7 @@
 class Writetofillet < Formula
   desc "Multithreaded file pumper CLI"
   homepage "https://github.com/supermarsx/writetofillet"
-  version :latest
+  version "latest"
 
   on_macos do
     if Hardware::CPU.arm?
@@ -33,4 +33,3 @@ class Writetofillet < Formula
     system "#{bin}/writetofillet", "--help"
   end
 end
-
