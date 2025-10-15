@@ -1,10 +1,10 @@
 <img width="1536" height="1024" alt="20251015_1313_Cyberpunk Tuna Fillet_simple_compose_01k7kwj05de0m99krbdavj722n" src="https://github.com/user-attachments/assets/4e2dccc3-9c9b-497d-b2a4-ddf85a0c2b55" />
 
-[![Format](https://img.shields.io/github/actions/workflow/status/supermarsx/writetofillet/format.yml?branch=main&style=flat-square)](https://github.com/supermarsx/writetofillet/actions/workflows/format.yml)
-[![Lint](https://img.shields.io/github/actions/workflow/status/supermarsx/writetofillet/lint.yml?branch=main&style=flat-square)](https://github.com/supermarsx/writetofillet/actions/workflows/lint.yml)
-[![Test](https://img.shields.io/github/actions/workflow/status/supermarsx/writetofillet/test.yml?branch=main&style=flat-square)](https://github.com/supermarsx/writetofillet/actions/workflows/test.yml)
-[![Build](https://img.shields.io/github/actions/workflow/status/supermarsx/writetofillet/build.yml?branch=main&style=flat-square)](https://github.com/supermarsx/writetofillet/actions/workflows/build.yml)
-[![Release](https://img.shields.io/github/actions/workflow/status/supermarsx/writetofillet/release.yml?branch=main&style=flat-square)](https://github.com/supermarsx/writetofillet/actions/workflows/release.yml)
+[![Format](https://img.shields.io/github/actions/workflow/status/supermarsx/writetofillet/format.yml?branch=main&style=flat-square&label=Format)](https://github.com/supermarsx/writetofillet/actions/workflows/format.yml)
+[![Lint](https://img.shields.io/github/actions/workflow/status/supermarsx/writetofillet/lint.yml?branch=main&style=flat-square&label=Lint)](https://github.com/supermarsx/writetofillet/actions/workflows/lint.yml)
+[![Test](https://img.shields.io/github/actions/workflow/status/supermarsx/writetofillet/test.yml?branch=main&style=flat-square&label=Test)](https://github.com/supermarsx/writetofillet/actions/workflows/test.yml)
+[![Build](https://img.shields.io/github/actions/workflow/status/supermarsx/writetofillet/build.yml?branch=main&style=flat-square&label=Build)](https://github.com/supermarsx/writetofillet/actions/workflows/build.yml)
+[![Release](https://img.shields.io/github/actions/workflow/status/supermarsx/writetofillet/release.yml?branch=main&style=flat-square&label=Release)](https://github.com/supermarsx/writetofillet/actions/workflows/release.yml)
 [![Coverage](https://raw.githubusercontent.com/supermarsx/writetofillet/refs/heads/main/badges/coverage.svg)](https://raw.githubusercontent.com/supermarsx/writetofillet/refs/heads/main/badges/coverage.svg)
 [![Stars](https://img.shields.io/github/stars/supermarsx/writetofillet.svg?style=flat-square)](https://github.com/supermarsx/writetofillet/stargazers)
 [![Forks](https://img.shields.io/github/forks/supermarsx/writetofillet.svg?style=flat-square)](https://github.com/supermarsx/writetofillet/fork)
