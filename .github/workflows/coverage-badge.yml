@@ -1,8 +1,7 @@
 name: Coverage Badge
 on:
   push:
-    branches: [ main, master ]
-  pull_request:
+    branches: [ main ]
 permissions:
   contents: write
 jobs:
@@ -29,15 +28,15 @@ jobs:
             coverage.xml
             badges/coverage.svg
       - name: Commit badge
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' && github.ref_name == 'main'
         run: |
           if git status --porcelain | grep -q -- 'badges/coverage.svg'; then
             git config user.name github-actions
             git config user.email github-actions@github.com
             git add badges/coverage.svg
             git commit -m "chore(badge): update coverage badge"
-            # Push to the current ref name explicitly (avoid detached HEAD issues)
-            git push origin HEAD:${GITHUB_REF_NAME}
+            # Push directly to main so the badge is always on main
+            git push origin HEAD:main
           else
             echo "No badge changes."
           fi
