@@ -1,4 +1,4 @@
-# writetofillet — File Pumper CLI
+<img width="1536" height="1024" alt="20251015_1313_Cyberpunk Tuna Fillet_simple_compose_01k7kwj05de0m99krbdavj722n" src="https://github.com/user-attachments/assets/4e2dccc3-9c9b-497d-b2a4-ddf85a0c2b55" />
 
 [![Format](https://github.com/supermarsx/writetofillet/actions/workflows/format.yml/badge.svg)](https://github.com/supermarsx/writetofillet/actions/workflows/format.yml)
 [![Lint](https://github.com/supermarsx/writetofillet/actions/workflows/lint.yml/badge.svg)](https://github.com/supermarsx/writetofillet/actions/workflows/lint.yml)
