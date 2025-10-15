@@ -24,13 +24,6 @@ jobs:
       - run: pip install -e . pytest pytest-cov pyyaml psutil tomli
       - run: pytest -q --cov=writetofillet --cov-report=xml
       - run: python scripts/gen_coverage_badge.py coverage.xml badges/coverage.svg
-      - name: Upload coverage artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-artifacts
-          path: |
-            coverage.xml
-            badges/coverage.svg
       - name: Commit badge
         if: github.event_name == 'push' && github.ref_name == 'main'
         run: |
