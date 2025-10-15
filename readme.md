@@ -1,19 +1,19 @@
 <img width="1536" height="1024" alt="20251015_1313_Cyberpunk Tuna Fillet_simple_compose_01k7kwj05de0m99krbdavj722n" src="https://github.com/user-attachments/assets/4e2dccc3-9c9b-497d-b2a4-ddf85a0c2b55" />
 
-[![Format](https://github.com/supermarsx/writetofillet/actions/workflows/format.yml/badge.svg)](https://github.com/supermarsx/writetofillet/actions/workflows/format.yml)
-[![Lint](https://github.com/supermarsx/writetofillet/actions/workflows/lint.yml/badge.svg)](https://github.com/supermarsx/writetofillet/actions/workflows/lint.yml)
-[![Test](https://github.com/supermarsx/writetofillet/actions/workflows/test.yml/badge.svg)](https://github.com/supermarsx/writetofillet/actions/workflows/test.yml)
-[![Build](https://github.com/supermarsx/writetofillet/actions/workflows/build.yml/badge.svg)](https://github.com/supermarsx/writetofillet/actions/workflows/build.yml)
-[![Release](https://github.com/supermarsx/writetofillet/actions/workflows/release.yml/badge.svg)](https://github.com/supermarsx/writetofillet/actions/workflows/release.yml)
+[![Format](https://img.shields.io/github/actions/workflow/status/supermarsx/writetofillet/format.yml?branch=main&style=flat-square)](https://github.com/supermarsx/writetofillet/actions/workflows/format.yml)
+[![Lint](https://img.shields.io/github/actions/workflow/status/supermarsx/writetofillet/lint.yml?branch=main&style=flat-square)](https://github.com/supermarsx/writetofillet/actions/workflows/lint.yml)
+[![Test](https://img.shields.io/github/actions/workflow/status/supermarsx/writetofillet/test.yml?branch=main&style=flat-square)](https://github.com/supermarsx/writetofillet/actions/workflows/test.yml)
+[![Build](https://img.shields.io/github/actions/workflow/status/supermarsx/writetofillet/build.yml?branch=main&style=flat-square)](https://github.com/supermarsx/writetofillet/actions/workflows/build.yml)
+[![Release](https://img.shields.io/github/actions/workflow/status/supermarsx/writetofillet/release.yml?branch=main&style=flat-square)](https://github.com/supermarsx/writetofillet/actions/workflows/release.yml)
 [![Coverage](https://raw.githubusercontent.com/supermarsx/writetofillet/refs/heads/main/badges/coverage.svg)](https://raw.githubusercontent.com/supermarsx/writetofillet/refs/heads/main/badges/coverage.svg)
-[![Stars](https://img.shields.io/github/stars/supermarsx/writetofillet.svg)](https://github.com/supermarsx/writetofillet/stargazers)
-[![Forks](https://img.shields.io/github/forks/supermarsx/writetofillet.svg)](https://github.com/supermarsx/writetofillet/fork)
-[![Watchers](https://img.shields.io/github/watchers/supermarsx/writetofillet.svg)](https://github.com/supermarsx/writetofillet/watchers)
-[![Issues](https://img.shields.io/github/issues/supermarsx/writetofillet.svg)](https://github.com/supermarsx/writetofillet/issues)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](license.md)
-[![Downloads](https://img.shields.io/github/downloads/supermarsx/writetofillet/total.svg)](https://github.com/supermarsx/writetofillet/releases)
-[![Commit Activity](https://img.shields.io/github/commit-activity/m/supermarsx/writetofillet.svg)](https://github.com/supermarsx/writetofillet/graphs/code-frequency)
-[![Made with Python](https://img.shields.io/badge/Made%20with-Python-blue.svg)](https://www.python.org/)
+[![Stars](https://img.shields.io/github/stars/supermarsx/writetofillet.svg?style=flat-square)](https://github.com/supermarsx/writetofillet/stargazers)
+[![Forks](https://img.shields.io/github/forks/supermarsx/writetofillet.svg?style=flat-square)](https://github.com/supermarsx/writetofillet/fork)
+[![Watchers](https://img.shields.io/github/watchers/supermarsx/writetofillet.svg?style=flat-square)](https://github.com/supermarsx/writetofillet/watchers)
+[![Issues](https://img.shields.io/github/issues/supermarsx/writetofillet.svg?style=flat-square)](https://github.com/supermarsx/writetofillet/issues)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square)](license.md)
+[![Downloads](https://img.shields.io/github/downloads/supermarsx/writetofillet/total.svg?style=flat-square)](https://github.com/supermarsx/writetofillet/releases)
+[![Commit Activity](https://img.shields.io/github/commit-activity/m/supermarsx/writetofillet.svg?style=flat-square)](https://github.com/supermarsx/writetofillet/graphs/code-frequency)
+[![Made with Python](https://img.shields.io/badge/Made%20with-Python-blue.svg?style=flat-square)](https://www.python.org/)
 
 A fast, multithreaded file pumper for generating large files on demand. It can write text or binary data by count or target size, append to existing files or overwrite, and operate across multiple targets (a file, a whole folder, or a file list). It supports RAM-buffered dumps or streaming writes with guardrails for memory and disk space, plus progress, throttling, sparse files, and periodic fsync for safer workloads. Built as a pure CLI, it’s cross‑platform and tuned with a built‑in benchmark to suggest optimal chunk size, concurrency, and threading model.
 - Repeat a word N times or pump until target size.
