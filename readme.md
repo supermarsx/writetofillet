@@ -18,7 +18,7 @@
 A fast, multithreaded file pumper for generating large files on demand. It can write text or binary data by count or target size, append to existing files or overwrite, and operate across multiple targets (a file, a whole folder, or a file list). It supports RAM-buffered dumps or streaming writes with guardrails for memory and disk space, plus progress, throttling, sparse files, and periodic fsync for safer workloads. Built as a pure CLI, it’s cross‑platform and tuned with a built‑in benchmark to suggest optimal chunk size, concurrency, and threading model.
 - Repeat a word N times or pump until target size.
 - Dictionary mode: sequential, reverse, random, presorted (multiple dictionaries supported).
-- Pumping modes: word, bin1, bin0, randbin, randutf8, randhex, random.
+- Pumping modes: word, bin1, bin0, randbin, randutf8, randascii, randhex, random.
 - Encoding: auto‑detect or choose (utf‑8, utf‑16/le/be, utf‑32, latin‑1, cp1252, ascii, shift_jis, gb18030).
 
 ## Why / Use Cases

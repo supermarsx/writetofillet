@@ -34,7 +34,7 @@ def detect_encoding(path: Path) -> str:
 def gen_random_bytes(mode: str, chunk_size: int = 8192) -> bytes:
     """Generate a chunk of bytes for a given random mode.
 
-    \param mode One of bin1, bin0, randbin, randutf8, randhex, random.
+    \param mode One of bin1, bin0, randbin, randutf8, randascii, randhex, random.
     \param chunk_size Desired approximate chunk size.
     \return Byte sequence of requested content.
     """
@@ -47,12 +47,18 @@ def gen_random_bytes(mode: str, chunk_size: int = 8192) -> bytes:
     if mode == "randutf8":
         s = "".join(random.choice(string.printable[:-6]) for _ in range(chunk_size))
         return s.encode("utf-8", "ignore")
+    if mode == "randascii":
+        # Printable 7-bit ASCII including space (no control characters)
+        chars = string.ascii_letters + string.digits + string.punctuation + " "
+        s = "".join(random.choice(chars) for _ in range(chunk_size))
+        return s.encode("ascii")
     if mode == "randhex":
         s = os.urandom(max(1, chunk_size // 2)).hex()
         return s.encode("ascii")
     if mode == "random":
         return gen_random_bytes(
-            random.choice(["bin1", "bin0", "randbin", "randutf8", "randhex"]), chunk_size
+            random.choice(["bin1", "bin0", "randbin", "randutf8", "randascii", "randhex"]),
+            chunk_size,
         )
     raise ValueError(f"Unknown mode: {mode}")
 

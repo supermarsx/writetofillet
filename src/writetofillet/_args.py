@@ -25,7 +25,8 @@ def build_argparser() -> argparse.ArgumentParser:
         "  bin1     0xFF bytes.\n"
         "  bin0     0x00 bytes.\n"
         "  randbin  Cryptographically random bytes.\n"
-        "  randutf8 Printable ASCII/UTF-8 text.\n"
+        "  randutf8 Printable ASCII-like UTF-8 (no whitespace).\n"
+        "  randascii Printable 7-bit ASCII (includes space).\n"
         "  randhex  Hex characters of random bytes.\n"
         "  random   Randomly pick one of the random modes per chunk.\n\n"
         "Defaults & safety:\n"
@@ -97,7 +98,16 @@ def build_argparser() -> argparse.ArgumentParser:
     )
     modes.add_argument(
         "--pump-mode",
-        choices=["word", "bin1", "bin0", "randbin", "randutf8", "randhex", "random"],
+        choices=[
+            "word",
+            "bin1",
+            "bin0",
+            "randbin",
+            "randutf8",
+            "randascii",
+            "randhex",
+            "random",
+        ],
         default=None,
     )
     modes.add_argument(

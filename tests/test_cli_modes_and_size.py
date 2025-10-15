@@ -22,15 +22,20 @@ def test_binary_fixed_modes_sizes(tmp_path: Path):
 def test_random_modes_sizes(tmp_path: Path):
     out_bin = tmp_path / "rand.bin"
     out_utf8 = tmp_path / "rand.txt"
+    out_ascii = tmp_path / "rand.ascii"
     out_hex = tmp_path / "rand.hex"
     run(["--pump-mode", "randbin", "--size", "6KiB", str(out_bin)])
     run(["--pump-mode", "randutf8", "--size", "5KiB", str(out_utf8)])
+    run(["--pump-mode", "randascii", "--size", "5KiB", str(out_ascii)])
     run(["--pump-mode", "randhex", "--size", "4KiB", str(out_hex)])
     assert out_bin.stat().st_size == 6144
     assert out_utf8.stat().st_size == 5120
+    assert out_ascii.stat().st_size == 5120
     assert out_hex.stat().st_size == 4096
     # Basic content checks
     out_utf8.read_text(encoding="utf-8")  # should decode
+    a = out_ascii.read_text(encoding="ascii")
+    assert all(32 <= ord(ch) <= 126 for ch in a)
     txt = out_hex.read_text(encoding="ascii")
     assert set(txt) <= set("0123456789abcdef")
 
