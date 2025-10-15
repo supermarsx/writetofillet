@@ -191,7 +191,15 @@ def main(argv: Iterable[str] | None = None) -> int:
             else:
                 per = len(word_bytes)
             expected = per * n_times
-        elif args.pump_mode in {"bin1", "bin0", "randbin", "randutf8", "randascii", "randhex", "random"}:
+        elif args.pump_mode in {
+            "bin1",
+            "bin0",
+            "randbin",
+            "randutf8",
+            "randascii",
+            "randhex",
+            "random",
+        }:
             expected = n_times * int(args.chunk)
 
     if use_ram and expected is not None and expected > args.ram_max:
