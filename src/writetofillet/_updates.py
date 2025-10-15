@@ -1,4 +1,4 @@
-"""
+r"""
 \file _updates.py
 \brief GitHub release update checking utilities.
 """
@@ -9,7 +9,7 @@ from urllib.request import Request, urlopen
 
 
 def check_updates(repo_url: str, logger) -> int:
-    """Check GitHub for the latest release and print the result.
+    r"""Check GitHub for the latest release and print the result.
 
     \param repo_url Repository HTML URL.
     \param logger Logger for warnings when network calls fail.

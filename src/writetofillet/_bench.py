@@ -1,4 +1,4 @@
-"""
+r"""
 \file _bench.py
 \brief Simple local benchmark to explore throughput vs. chunk/workers/concurrency.
 
@@ -18,7 +18,7 @@ from ._pump import pipeline_generate, pump_to_file, threaded_pump
 
 
 def _iter_randbin(chunk: int) -> Iterable[bytes]:
-    """Yield infinite random binary chunks of the given size.
+    r"""Yield infinite random binary chunks of the given size.
 
     \param chunk Chunk size in bytes.
     \return Infinite iterator of bytes.
@@ -32,7 +32,7 @@ def _iter_randbin(chunk: int) -> Iterable[bytes]:
 
 
 def _cpu_percent(elapsed: float, t_start: float, t_end: float) -> float:
-    """Compute an approximate CPU utilization percent for the process.
+    r"""Compute an approximate CPU utilization percent for the process.
 
     \param elapsed Wall time in seconds.
     \param t_start Process time at start.
@@ -80,7 +80,7 @@ def run_benchmark(
     candidate_workers: list[int] | None = None,
     include_generate: bool = True,
 ) -> tuple[list[BenchResult], BenchResult]:
-    """Run the benchmark suite and return all results and the best.
+    r"""Run the benchmark suite and return all results and the best.
 
     \param bench_size Target bytes to write per scenario.
     \param logger Logger for summary output.

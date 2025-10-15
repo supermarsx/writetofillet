@@ -1,4 +1,4 @@
-"""
+r"""
 \file _dictutil.py
 \brief Dictionary loading and iteration helpers (RAM or streaming).
 """
@@ -9,7 +9,7 @@ from pathlib import Path
 
 
 def iter_dict_words(path: Path, order: str, encoding: str, in_memory: bool) -> Iterable[str]:
-    """Yield words from a wordlist according to the requested order.
+    r"""Yield words from a wordlist according to the requested order.
 
     \param path Path to the dictionary file.
     \param order One of sequential, reverse, presorted, random.

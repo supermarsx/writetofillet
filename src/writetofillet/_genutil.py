@@ -1,4 +1,4 @@
-"""
+r"""
 \file _genutil.py
 \brief Data generation utilities for random and word-based modes.
 """
@@ -12,7 +12,7 @@ from pathlib import Path
 
 
 def detect_encoding(path: Path) -> str:
-    """Heuristically detect text encoding of a file.
+    r"""Heuristically detect text encoding of a file.
 
     Tries UTF-8, falls back to Latin-1.
 
@@ -32,7 +32,7 @@ def detect_encoding(path: Path) -> str:
 
 
 def gen_random_bytes(mode: str, chunk_size: int = 8192) -> bytes:
-    """Generate a chunk of bytes for a given random mode.
+    r"""Generate a chunk of bytes for a given random mode.
 
     \param mode One of bin1, bin0, randbin, randutf8, randascii, randhex, random.
     \param chunk_size Desired approximate chunk size.
@@ -64,7 +64,7 @@ def gen_random_bytes(mode: str, chunk_size: int = 8192) -> bytes:
 
 
 def make_token_iter(args) -> Iterable[bytes]:
-    """Create an infinite iterator of encoded tokens.
+    r"""Create an infinite iterator of encoded tokens.
 
     Honors word/dictionary modes or random binary/text modes based on args.
 

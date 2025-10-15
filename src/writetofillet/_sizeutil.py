@@ -1,4 +1,4 @@
-"""
+r"""
 \file _sizeutil.py
 \brief Human size parsing and formatting utilities for throughput/ETA.
 """
@@ -7,7 +7,7 @@ import argparse
 
 
 def parse_human_size(s):
-    """Parse a human-friendly size string into bytes.
+    r"""Parse a human-friendly size string into bytes.
 
     Supports decimal (KB/MB/GB) and binary (KiB/MiB/GiB) units.
 
@@ -49,7 +49,7 @@ def parse_human_size(s):
 
 
 def fmt_bytes(n: int) -> str:
-    """Format a byte count with binary units.
+    r"""Format a byte count with binary units.
 
     \param n Byte count.
     \return String like "64.0 KiB".
@@ -61,7 +61,7 @@ def fmt_bytes(n: int) -> str:
 
 
 def fmt_eta(seconds: float) -> str:
-    """Format an ETA given seconds remaining.
+    r"""Format an ETA given seconds remaining.
 
     \param seconds Seconds to completion.
     \return HH:MM:SS or MM:SS string, or "--:--" if unknown.

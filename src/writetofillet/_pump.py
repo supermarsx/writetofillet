@@ -1,4 +1,4 @@
-"""
+r"""
 \file _pump.py
 \brief Pumping strategies: direct streaming, RAM buffering, threaded, pipeline.
 """
@@ -73,7 +73,7 @@ def pump_to_file(
     error_budget: int = 0,
     start_offset: int | None = None,
 ):
-    """Write to a file sequentially from a byte iterator.
+    r"""Write to a file sequentially from a byte iterator.
 
     \param path Destination file path.
     \param data_iter Infinite iterator of byte chunks.
@@ -300,7 +300,7 @@ def buffer_and_dump(
     cpu_limit: float | None = None,
     ram_limit: int | None = None,
 ):
-    """Accumulate into RAM, then dump to disk in a single write.
+    r"""Accumulate into RAM, then dump to disk in a single write.
 
     Guarded by \p ram_max to avoid excessive memory usage. Supports
     optional rate, CPU, and RAM limiting (best effort). Sparse handling
@@ -412,7 +412,7 @@ def threaded_pump(
     cpu_limit: float | None = None,
     ram_limit: int | None = None,
 ):
-    """Run multiple writer threads against a shared file handle.
+    r"""Run multiple writer threads against a shared file handle.
 
     Uses coarse-grained locking; suitable for high-throughput scenarios.
     Supports optional periodic fsync, sparse holes, and throttles.

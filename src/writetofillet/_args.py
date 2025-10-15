@@ -1,4 +1,4 @@
-"""
+r"""
 \file _args.py
 \brief Argument parsing and basic option resolution utilities.
 """
@@ -10,7 +10,7 @@ from ._sizeutil import parse_human_size
 
 
 def build_argparser() -> argparse.ArgumentParser:
-    """Build the CLI argument parser.
+    r"""Build the CLI argument parser.
 
     \return Configured ArgumentParser instance.
     """
@@ -318,7 +318,7 @@ def build_argparser() -> argparse.ArgumentParser:
 
 
 def resolve_times(times, times_range, max_times):
-    """Resolve the effective repetition count.
+    r"""Resolve the effective repetition count.
 
     \param times Fixed number of repetitions or None.
     \param times_range Range string "MIN,MAX" for random selection or None.

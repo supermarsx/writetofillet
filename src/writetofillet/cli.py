@@ -1,4 +1,4 @@
-"""
+r"""
 \file cli.py
 \brief CLI entrypoint orchestrating parsing, threading, and pumping.
 
@@ -23,7 +23,7 @@ from ._updates import check_updates
 
 
 def main(argv: Iterable[str] | None = None) -> int:
-    """Run the writetofillet CLI.
+    r"""Run the writetofillet CLI.
 
     \param argv Optional list of arguments (defaults to sys.argv[1:]).
     \return Process exit code (0 on success).
