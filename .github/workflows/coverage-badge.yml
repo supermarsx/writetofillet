@@ -13,6 +13,8 @@ jobs:
         with:
           persist-credentials: true
           fetch-depth: 0
+          # Ensure we have a branch instead of detached HEAD so we can push
+          ref: ${{ github.ref }}
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -34,7 +36,8 @@ jobs:
             git config user.email github-actions@github.com
             git add badges/coverage.svg
             git commit -m "chore(badge): update coverage badge"
-            git push
+            # Push to the current ref name explicitly (avoid detached HEAD issues)
+            git push origin HEAD:${GITHUB_REF_NAME}
           else
             echo "No badge changes."
           fi
