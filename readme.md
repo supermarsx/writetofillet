@@ -1,4 +1,4 @@
-<img width="1536" height="1024" alt="20251015_1313_Cyberpunk Tuna Fillet_simple_compose_01k7kwj05de0m99krbdavj722n" src="https://github.com/user-attachments/assets/4e2dccc3-9c9b-497d-b2a4-ddf85a0c2b55" />
+<img width="1536" height="1024" alt="writetofillet logotype" src="https://github.com/user-attachments/assets/4e2dccc3-9c9b-497d-b2a4-ddf85a0c2b55" />
 
 [![Format](https://img.shields.io/github/actions/workflow/status/supermarsx/writetofillet/format.yml?branch=main&style=flat-square&label=Format)](https://github.com/supermarsx/writetofillet/actions/workflows/format.yml)
 [![Lint](https://img.shields.io/github/actions/workflow/status/supermarsx/writetofillet/lint.yml?branch=main&style=flat-square&label=Lint)](https://github.com/supermarsx/writetofillet/actions/workflows/lint.yml)
