@@ -55,29 +55,29 @@ def color_for(pct: int) -> str:
 def make_svg(pct: int) -> str:
     label = "coverage"
     value = f"{pct}%"
-    # Simple badge layout
-    # Dimensions
-    label_w = 74
-    value_w = 52
+    label_w = 64
+    value_w = 38
     total_w = label_w + value_w
+    height = 18
+    text_y = 13
     color = color_for(pct)
     return f"""
-<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{total_w}\" height=\"20\">
+<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{total_w}\" height=\"{height}\">
   <linearGradient id=\"b\" x2=\"0\" y2=\"100%\">
     <stop offset=\"0\" stop-color=\"#bbb\" stop-opacity=\".1\"/>
     <stop offset=\"1\" stop-opacity=\".1\"/>
   </linearGradient>
   <mask id=\"a\">
-    <rect width=\"{total_w}\" height=\"20\" rx=\"3\" fill=\"#fff\"/>
+    <rect width=\"{total_w}\" height=\"{height}\" rx=\"1\" fill=\"#fff\"/>
   </mask>
   <g mask=\"url(#a)\">
-    <rect width=\"{label_w}\" height=\"20\" fill=\"#555\"/>
-    <rect x=\"{label_w}\" width=\"{value_w}\" height=\"20\" fill=\"{color}\"/>
-    <rect width=\"{total_w}\" height=\"20\" fill=\"url(#b)\"/>
+    <rect width=\"{label_w}\" height=\"{height}\" fill=\"#555\"/>
+    <rect x=\"{label_w}\" width=\"{value_w}\" height=\"{height}\" fill=\"{color}\"/>
+    <rect width=\"{total_w}\" height=\"{height}\" fill=\"url(#b)\"/>
   </g>
-  <g fill=\"#fff\" text-anchor=\"middle\" font-family=\"Verdana\" font-size=\"11\">
-    <text x=\"{label_w/2}\" y=\"15\">{label}</text>
-    <text x=\"{label_w + value_w/2}\" y=\"15\">{value}</text>
+  <g fill=\"#fff\" text-anchor=\"middle\" font-family=\"Verdana\" font-size=\"10\">
+    <text x=\"{label_w/2}\" y=\"{text_y}\">{label}</text>
+    <text x=\"{label_w + value_w/2}\" y=\"{text_y}\">{value}</text>
   </g>
 </svg>
 """
