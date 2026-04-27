@@ -1,0 +1,311 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+env:
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  quality:
+    if: ${{ github.event_name != 'release' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e . black ruff pytest pytest-cov pyyaml psutil tomli
+
+      - name: Check formatting
+        run: black --check .
+
+      - name: Lint
+        run: ruff check .
+
+      - name: Test with coverage
+        run: pytest -q --cov=writetofillet --cov-report=xml
+
+      - name: Generate coverage badge
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        run: python scripts/gen_coverage_badge.py coverage.xml badges/coverage.svg
+
+      - name: Commit coverage badge
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add badges/coverage.svg
+          if git diff --cached --quiet; then
+            echo "No badge changes."
+            exit 0
+          fi
+          git commit -m "chore(badge): update coverage badge [skip ci]"
+          git push origin HEAD:main
+
+  build:
+    if: ${{ github.event_name != 'release' }}
+    needs: quality
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact_os: linux
+            artifact_arch: x64
+            extension: ""
+          - os: ubuntu-24.04-arm
+            artifact_os: linux
+            artifact_arch: arm64
+            extension: ""
+          - os: windows-latest
+            artifact_os: windows
+            artifact_arch: x64
+            extension: ".exe"
+          - os: windows-11-arm
+            artifact_os: windows
+            artifact_arch: arm64
+            extension: ".exe"
+          - os: macos-15-intel
+            artifact_os: macos
+            artifact_arch: x64
+            extension: ""
+          - os: macos-15
+            artifact_os: macos
+            artifact_arch: arm64
+            extension: ""
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e . pyinstaller
+
+      - name: Build binary
+        run: pyinstaller --onefile -n writetofillet --paths src scripts/pyinstaller_entry.py
+
+      - name: Rename artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          src="dist/writetofillet${{ matrix.extension }}"
+          dst="dist/writetofillet-${{ matrix.artifact_os }}-${{ matrix.artifact_arch }}${{ matrix.extension }}"
+          mv "$src" "$dst"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: writetofillet-${{ matrix.artifact_os }}-${{ matrix.artifact_arch }}
+          path: dist/writetofillet-*
+
+  packagers:
+    if: ${{ github.event_name != 'release' }}
+    needs: quality
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-15
+            kind: homebrew
+          - os: windows-latest
+            kind: scoop
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Verify Homebrew formula
+        if: ${{ matrix.kind == 'homebrew' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          python -m pip install -e . pyinstaller
+          pyinstaller --onefile -n writetofillet --paths src scripts/pyinstaller_entry.py
+
+          arch_name="x64"
+          if [ "$(uname -m)" = "arm64" ]; then
+            arch_name="arm64"
+          fi
+          mv dist/writetofillet "dist/writetofillet-macos-${arch_name}"
+
+          brew tap-new local/writetofillet >/dev/null
+          tapdir="$(brew --repository)/Library/Taps/local/homebrew-writetofillet"
+          mkdir -p "$tapdir/Formula"
+          cp Formula/writetofillet.rb "$tapdir/Formula/writetofillet.rb"
+
+          export TAPDIR="$tapdir"
+          export ARCH_NAME="$arch_name"
+          python - <<'PY'
+          import os
+          import re
+
+          tapdir = os.environ["TAPDIR"]
+          arch = os.environ["ARCH_NAME"]
+          formula_path = f"{tapdir}/Formula/writetofillet.rb"
+          with open(formula_path, encoding="utf-8") as handle:
+              formula = handle.read()
+          formula = re.sub(
+              r'^\s*url\s+"https://github\.com/[^"]+/releases/(latest/download|download/[^/]+)/writetofillet-macos-[^"]+"',
+              f'  url "file://{os.getcwd()}/dist/writetofillet-macos-{arch}"',
+              formula,
+              flags=re.M,
+          )
+          with open(formula_path, "w", encoding="utf-8") as handle:
+              handle.write(formula)
+          PY
+
+          brew install local/writetofillet/writetofillet
+          writetofillet --version
+
+      - name: Install Scoop
+        if: ${{ matrix.kind == 'scoop' }}
+        shell: powershell
+        run: |
+          iwr -useb get.scoop.sh | iex
+          "$env:USERPROFILE\scoop\shims" | Out-File -FilePath $env:GITHUB_PATH -Encoding ascii -Append
+
+      - name: Verify Scoop manifest
+        if: ${{ matrix.kind == 'scoop' }}
+        shell: powershell
+        run: |
+          $py = if ($env:pythonLocation) { Join-Path $env:pythonLocation 'python.exe' } else { 'python' }
+          & $py -m pip install --upgrade pip
+          & $py -m pip install -e . pyinstaller
+          & $py -m PyInstaller --onefile -n writetofillet --paths src scripts/pyinstaller_entry.py
+
+          $archSuffix = "x64"
+          if ($env:PROCESSOR_ARCHITECTURE -eq "ARM64") {
+            $archSuffix = "arm64"
+          }
+          Move-Item -Force "dist/writetofillet.exe" "dist/writetofillet-windows-$archSuffix.exe"
+
+          $manifestPath = "$pwd\bucket\writetofillet.json"
+          $json = Get-Content $manifestPath -Raw | ConvertFrom-Json
+          $exePath = Join-Path $pwd "dist/writetofillet-windows-$archSuffix.exe"
+          $fileUri = [System.Uri]::new($exePath).AbsoluteUri
+          $hash = (Get-FileHash -Algorithm SHA256 $exePath).Hash.ToLower()
+
+          if ($archSuffix -eq "x64") {
+            $json.architecture."64bit".url = $fileUri
+            $json.architecture."64bit".hash = $hash
+            $json.architecture."64bit".bin = @("writetofillet-windows-$archSuffix.exe", "writetofillet")
+          } else {
+            $json.architecture."arm64".url = $fileUri
+            $json.architecture."arm64".hash = $hash
+            $json.architecture."arm64".bin = @("writetofillet-windows-$archSuffix.exe", "writetofillet")
+          }
+
+          $json | ConvertTo-Json -Depth 10 | Set-Content -Encoding UTF8 $manifestPath
+          scoop cache rm writetofillet | Out-Null
+          scoop install "$pwd\bucket\writetofillet.json" --no-cache
+          writetofillet --version
+
+  release:
+    if: >-
+      ${{
+        github.event_name == 'push' &&
+        (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') &&
+        !contains(github.event.head_commit.message, '[skip ci]')
+      }}
+    needs: [build, packagers]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Determine next rolling tag
+        run: |
+          set -euo pipefail
+          yy="$(date +'%y')"
+          git fetch --tags --force
+          last="$(git tag -l "${yy}.*" | sed -n "s/^${yy}\.\([0-9][0-9]*\)$/\1/p" | sort -n | tail -n 1)"
+          if [ -z "$last" ]; then
+            n=1
+          else
+            n=$((last + 1))
+          fi
+          tag="${yy}.${n}"
+          echo "TAG=$tag" >> "$GITHUB_ENV"
+          echo "Computed tag: $tag"
+
+      - uses: actions/download-artifact@v8
+        with:
+          path: ./artifacts
+
+      - name: Create rolling release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.TAG }}
+          name: Release ${{ env.TAG }}
+          prerelease: false
+          make_latest: true
+          files: artifacts/**
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  update-packagers:
+    if: ${{ github.event_name == 'release' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Update Homebrew formula and Scoop manifest
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          echo "Updating packaging files to tag $TAG"
+
+          if [ -f Formula/writetofillet.rb ]; then
+            sed -i.bak -E "s/^\s*version\s+[:\"a-zA-Z0-9_.-]+/  version \"$TAG\"/" Formula/writetofillet.rb
+            sed -i.bak -E "s|/releases/(latest/download|download/[^/]+)/|/releases/download/$TAG/|g" Formula/writetofillet.rb
+            rm -f Formula/writetofillet.rb.bak
+          fi
+
+          if [ -f bucket/writetofillet.json ]; then
+            sed -i.bak -E "s/\"version\"\s*:\s*\"[^\"]*\"/\"version\": \"$TAG\"/" bucket/writetofillet.json
+            sed -i.bak -E "s|/releases/(latest/download|download/[^/]+)/|/releases/download/$TAG/|g" bucket/writetofillet.json
+            rm -f bucket/writetofillet.json.bak
+          fi
+
+          if git status --porcelain | grep .; then
+            git config user.name "github-actions"
+            git config user.email "github-actions@github.com"
+            git add Formula/writetofillet.rb bucket/writetofillet.json
+            git commit -m "chore(packaging): update Homebrew/Scoop to $TAG [skip ci]"
+            git push origin HEAD:main
+          else
+            echo "No packaging changes needed."
+          fi

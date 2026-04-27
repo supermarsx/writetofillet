@@ -5,6 +5,7 @@ Generate a coverage badge SVG from coverage.xml (Cobertura).
 Usage:
   python scripts/gen_coverage_badge.py coverage.xml badges/coverage.svg
 """
+
 import os
 import sys
 import xml.etree.ElementTree as ET

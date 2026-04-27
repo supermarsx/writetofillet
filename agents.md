@@ -11,7 +11,7 @@
 - Run CLI: `writetofillet --help` (or `python -m writetofillet`)
 - Local dev install: none required (stdlib). Optional tools: `pip install black ruff pytest pyinstaller`.
 - Format: `black .`  | Lint: `ruff check .`  | Tests: `pytest -q`
-- Build (single binary): `pyinstaller --onefile -n writetofillet src/writetofillet/cli.py`
+- Build (single binary): `pyinstaller --onefile -n writetofillet --paths src scripts/pyinstaller_entry.py`
 
 ## Coding Style
 - Python 3.10+, 4‑space indents, PEP 8.
