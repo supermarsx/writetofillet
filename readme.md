@@ -1,4 +1,4 @@
-<img width="1536" height="1024" alt="writetofillet logotype" src="https://github.com/user-attachments/assets/4e2dccc3-9c9b-497d-b2a4-ddf85a0c2b55" />
+<img width="900" height="600" alt="writetofillet logotype" src="https://github.com/user-attachments/assets/4e2dccc3-9c9b-497d-b2a4-ddf85a0c2b55" />
 
 [![CI](https://img.shields.io/github/actions/workflow/status/supermarsx/writetofillet/ci.yml?branch=main&style=flat-square&label=CI)](https://github.com/supermarsx/writetofillet/actions/workflows/ci.yml)
 [![Coverage](https://raw.githubusercontent.com/supermarsx/writetofillet/refs/heads/main/badges/coverage.svg)](https://raw.githubusercontent.com/supermarsx/writetofillet/refs/heads/main/badges/coverage.svg)
