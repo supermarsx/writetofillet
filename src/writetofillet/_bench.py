@@ -10,14 +10,14 @@ structured results and a best recommendation.
 import os
 import tempfile
 import time
-from collections.abc import Iterable
+from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
 
 from ._pump import pipeline_generate, pump_to_file, threaded_pump
 
 
-def _iter_randbin(chunk: int) -> Iterable[bytes]:
+def _iter_randbin(chunk: int) -> Iterator[bytes]:
     r"""Yield infinite random binary chunks of the given size.
 
     \param chunk Chunk size in bytes.

@@ -13,6 +13,7 @@ import sys
 import threading
 from collections.abc import Iterable
 from pathlib import Path
+from typing import Any
 
 from ._args import build_argparser, resolve_times
 from ._bench import run_benchmark
@@ -221,7 +222,7 @@ def main(argv: Iterable[str] | None = None) -> int:
             import os
             import shutil
 
-            groups = {}
+            groups: dict[int, dict[str, Any]] = {}
             for tgt in targets:
                 parent = Path(tgt).parent
                 dev = os.stat(parent).st_dev

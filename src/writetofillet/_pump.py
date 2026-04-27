@@ -8,7 +8,7 @@ import os
 import sys
 import threading
 import time
-from collections.abc import Iterable
+from collections.abc import Iterator
 from pathlib import Path
 
 from ._sizeutil import fmt_bytes, fmt_eta
@@ -54,7 +54,7 @@ def _write_or_seek(f, chunk: bytes, *, sparse: bool):
 
 def pump_to_file(
     path: Path,
-    data_iter: Iterable[bytes],
+    data_iter: Iterator[bytes],
     *,
     append: bool,
     size_limit: int | None,
@@ -273,6 +273,7 @@ def pump_to_file(
             try:
                 import hashlib
 
+                assert hash_algo is not None
                 hv = getattr(hashlib, hash_algo)()
                 with open(path, "rb") as rf:
                     for blk in iter(lambda: rf.read(1024 * 1024), b""):
@@ -286,7 +287,7 @@ def pump_to_file(
 
 def buffer_and_dump(
     path: Path,
-    data_iter: Iterable[bytes],
+    data_iter: Iterator[bytes],
     *,
     append: bool,
     size_limit: int | None,
@@ -398,7 +399,7 @@ def buffer_and_dump(
 
 def threaded_pump(
     path: Path,
-    data_iter: Iterable[bytes],
+    data_iter: Iterator[bytes],
     *,
     append: bool,
     size_limit: int | None,
@@ -538,7 +539,7 @@ def threaded_pump(
 
 def pipeline_generate(
     path: Path,
-    data_iter: Iterable[bytes],
+    data_iter: Iterator[bytes],
     *,
     append: bool,
     size_limit: int | None,
