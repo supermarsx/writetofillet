@@ -2,9 +2,6 @@
 
 [![CI](https://img.shields.io/github/actions/workflow/status/supermarsx/writetofillet/ci.yml?branch=main&style=flat-square&label=CI)](https://github.com/supermarsx/writetofillet/actions/workflows/ci.yml)
 [![Coverage](https://raw.githubusercontent.com/supermarsx/writetofillet/refs/heads/main/badges/coverage.svg)](https://raw.githubusercontent.com/supermarsx/writetofillet/refs/heads/main/badges/coverage.svg)
-[![Stars](https://img.shields.io/github/stars/supermarsx/writetofillet.svg?style=flat-square)](https://github.com/supermarsx/writetofillet/stargazers)
-[![Forks](https://img.shields.io/github/forks/supermarsx/writetofillet.svg?style=flat-square)](https://github.com/supermarsx/writetofillet/fork)
-[![Watchers](https://img.shields.io/github/watchers/supermarsx/writetofillet.svg?style=flat-square)](https://github.com/supermarsx/writetofillet/watchers)
 [![Issues](https://img.shields.io/github/issues/supermarsx/writetofillet.svg?style=flat-square)](https://github.com/supermarsx/writetofillet/issues)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square)](license.md)
 [![Downloads](https://img.shields.io/github/downloads/supermarsx/writetofillet/total.svg?style=flat-square)](https://github.com/supermarsx/writetofillet/releases)
